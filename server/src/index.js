@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const pool = require("./db/db");
 const productRoutes = require("./routes/product.routes");
+const customerRoutes = require("./routes/customer.routes");
 
 require("dotenv").config();
 
@@ -10,14 +11,12 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-
 app.use("/products", productRoutes);
+app.use("/customers", customerRoutes);
 
-app.get("/", async(req, res) => {
+app.get("/", async (req, res) => {
   try {
-    const result = await pool.query(
-      "SELECT current_database()"
-    );
+    const result = await pool.query("SELECT current_database()");
     res.json({
       message: "Mini ERP Backend Running",
       database: result.rows[0].current_database,

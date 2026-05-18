@@ -6,6 +6,7 @@ import {
 
 import Home from "../pages/Home";
 import Products from "../pages/Products";
+import Customers from "../pages/Customer";
 
 const AppRoutes = () => {
   return (
@@ -20,6 +21,10 @@ const AppRoutes = () => {
         <Route
           path="/products"
           element={<Products />}
+        />
+        <Route
+          path="/customers"
+          element={<Customers />}
         />
 
       </Routes>

@@ -3,6 +3,7 @@ const cors = require("cors");
 const pool = require("./db/db");
 const productRoutes = require("./routes/product.routes");
 const customerRoutes = require("./routes/customer.routes");
+const saleRoutes = require("./routes/sale.routes");
 
 require("dotenv").config();
 
@@ -13,6 +14,7 @@ app.use(express.json());
 
 app.use("/products", productRoutes);
 app.use("/customers", customerRoutes);
+app.use("/sales", saleRoutes);
 
 app.get("/", async (req, res) => {
   try {

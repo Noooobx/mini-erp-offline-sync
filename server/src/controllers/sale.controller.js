@@ -1,4 +1,5 @@
 const pool = require("../db/db");
+const saleService = require("../services/sale.service");
 
 const createSale = async ({
   customer_id,
@@ -115,7 +116,7 @@ const createSale = async ({
   }
 };
 
-const getSales = async () => {
+const getSales = async (req,res) => {
   const result = await pool.query(
     `
     SELECT *
@@ -124,36 +125,30 @@ const getSales = async () => {
     `
   );
 
-  return result.rows;
+  console.log(result.rows); 
+
+  return res.json(result.rows);
 };
 
-const getSaleById = async (id) => {
-  const saleResult = await pool.query(
-    `
-    SELECT *
-    FROM sales
-    WHERE id = $1
-    `,
-    [id]
-  );
+const getSaleById = async (req, res) => {
+  try {
 
-  const itemsResult = await pool.query(
-    `
-    SELECT
-      sale_items.*,
-      products.name
-    FROM sale_items
-    JOIN products
-    ON sale_items.product_id = products.id
-    WHERE sale_id = $1
-    `,
-    [id]
-  );
+    const sale =
+      await saleService.getSaleById(
+        req.params.id
+      );
 
-  return {
-    sale: saleResult.rows[0],
-    items: itemsResult.rows,
-  };
+    return res.json(sale);
+
+  } catch (error) {
+
+    console.error(error);
+
+    return res.status(500).json({
+      error: "Failed to fetch sale",
+    });
+
+  }
 };
 
 module.exports = {

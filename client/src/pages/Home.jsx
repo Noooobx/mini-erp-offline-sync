@@ -1,6 +1,25 @@
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { getDashboardStats } from "../services/dashboard.service";
 const Home = () => {
   const navigate = useNavigate();
+  const [stats, setStats] = useState({
+    todaySales: 0,
+    totalProducts: 0,
+    lowStock: 0,
+    totalCustomers: 0,
+  });
+  useEffect(() => {
+    const fetchDashboard = async () => {
+      try {
+        const data = await getDashboardStats();
+        setStats(data);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+    fetchDashboard();
+  }, []);
   const quickLinks = [
     {
       title: "Products",
@@ -55,7 +74,7 @@ const Home = () => {
             <p className="text-zinc-400 text-sm"> Today's Sales </p>{" "}
             <h2 className="text-2xl sm:text-3xl font-semibold mt-3">
               {" "}
-              ₹0{" "}
+              ₹{stats.todaySales}{" "}
             </h2>{" "}
           </div>{" "}
           <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5">
@@ -63,7 +82,7 @@ const Home = () => {
             <p className="text-zinc-400 text-sm"> Products </p>{" "}
             <h2 className="text-2xl sm:text-3xl font-semibold mt-3">
               {" "}
-              0{" "}
+              {stats.totalProducts}{" "}
             </h2>{" "}
           </div>{" "}
           <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5">
@@ -71,7 +90,7 @@ const Home = () => {
             <p className="text-zinc-400 text-sm"> Low Stock </p>{" "}
             <h2 className="text-2xl sm:text-3xl font-semibold mt-3">
               {" "}
-              0{" "}
+              {stats.lowStock}{" "}
             </h2>{" "}
           </div>{" "}
         </div>{" "}

@@ -1,5 +1,10 @@
 const pool = require("../db/db");
 
+/**
+ * Retrieves all valid items from the product inventory.
+ * Excludes soft-deleted products so they don't appear in the storefront.
+ * @returns {Array} List of product objects.
+ */
 const getAllProducts = async () => {
   const result = await pool.query(
     `
@@ -13,12 +18,11 @@ const getAllProducts = async () => {
   return result.rows;
 };
 
-const createProduct = async ({
-  name,
-  barcode,
-  price,
-  stock_qty,
-}) => {
+/**
+ * Integrates a new product into the database ledger.
+ * @returns {Object} The recently created product record.
+ */
+const createProduct = async ({ name, barcode, price, stock_qty }) => {
   const result = await pool.query(
     `
     INSERT INTO products
@@ -32,10 +36,11 @@ const createProduct = async ({
   return result.rows[0];
 };
 
-const updateProduct = async (
-  id,
-  { name, barcode, price, stock_qty }
-) => {
+/**
+ * Updates an inventory item's core details (such as price or direct stock adjustments).
+ * @returns {Object} The newly updated product.
+ */
+const updateProduct = async (id, { name, barcode, price, stock_qty }) => {
   const result = await pool.query(
     `
     UPDATE products
@@ -54,7 +59,11 @@ const updateProduct = async (
   return result.rows[0];
 };
 
+/**
+ * Gracefully soft-deletes a product, ensuring that past historical sales referencing this product ID stay intact.
+ */
 const deleteProduct = async (id) => {
+  // Soft-deletion ensures relational integrity with the sale_items table
   await pool.query(
     `
     UPDATE products

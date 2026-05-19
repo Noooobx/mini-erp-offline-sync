@@ -1,25 +1,8 @@
-import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getDashboardStats } from "../services/dashboard.service";
+
 const Home = () => {
   const navigate = useNavigate();
-  const [stats, setStats] = useState({
-    todaySales: 0,
-    totalProducts: 0,
-    lowStock: 0,
-    totalCustomers: 0,
-  });
-  useEffect(() => {
-    const fetchDashboard = async () => {
-      try {
-        const data = await getDashboardStats();
-        setStats(data);
-      } catch (error) {
-        console.error(error);
-      }
-    };
-    fetchDashboard();
-  }, []);
+
   const quickLinks = [
     {
       title: "Products",
@@ -36,91 +19,84 @@ const Home = () => {
       description: "Create invoices and track sales",
       path: "/sales",
     },
+    {
+      title: "Dashboard",
+      description: "View analytics and reports",
+      path: "/dashboard",
+    },
   ];
+
   return (
     <div className="min-h-screen bg-zinc-950 text-white">
-      {" "}
-      {/* Navbar */}{" "}
-      <header className="border-b border-zinc-800 px-4 sm:px-6 py-4 flex items-center justify-between">
-        {" "}
-        <div>
-          {" "}
-          <h1 className="text-xl sm:text-2xl font-semibold"> Mini ERP </h1>{" "}
-          <p className="text-zinc-400 text-sm mt-1">
-            {" "}
-            Offline-first retail management{" "}
-          </p>{" "}
-        </div>{" "}
-        <div className="flex items-center gap-3">
-          {" "}
-          <div className="flex items-center gap-2 text-sm text-zinc-400">
-            {" "}
-            <span className="w-2 h-2 rounded-full bg-emerald-400"></span>{" "}
-            Synced{" "}
-          </div>{" "}
-          <button className="bg-blue-500 hover:bg-blue-600 transition px-4 py-2 rounded-lg text-sm font-medium">
-            {" "}
-            Dashboard{" "}
-          </button>{" "}
-        </div>{" "}
-      </header>{" "}
-      <main className="p-4 sm:p-6">
-        {" "}
-        {/* Stats */}{" "}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {" "}
-          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5">
-            {" "}
-            <p className="text-zinc-400 text-sm"> Today's Sales </p>{" "}
-            <h2 className="text-2xl sm:text-3xl font-semibold mt-3">
-              {" "}
-              ₹{stats.todaySales}{" "}
-            </h2>{" "}
-          </div>{" "}
-          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5">
-            {" "}
-            <p className="text-zinc-400 text-sm"> Products </p>{" "}
-            <h2 className="text-2xl sm:text-3xl font-semibold mt-3">
-              {" "}
-              {stats.totalProducts}{" "}
-            </h2>{" "}
-          </div>{" "}
-          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5">
-            {" "}
-            <p className="text-zinc-400 text-sm"> Low Stock </p>{" "}
-            <h2 className="text-2xl sm:text-3xl font-semibold mt-3">
-              {" "}
-              {stats.lowStock}{" "}
-            </h2>{" "}
-          </div>{" "}
-        </div>{" "}
-        {/* Quick Access */}{" "}
-        <section className="mt-10">
-          {" "}
-          <h2 className="text-lg sm:text-xl font-semibold">
-            {" "}
-            Quick Access{" "}
-          </h2>{" "}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-5">
-            {" "}
+      {/* Navbar */}
+      <header className="border-b border-zinc-800 bg-zinc-950/95 backdrop-blur">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4">
+          <h1 className="text-2xl font-semibold tracking-tight">Shop Pilot</h1>
+
+          <p className="text-zinc-400 text-sm mt-1">Retail management system</p>
+        </div>
+      </header>
+
+      {/* Main */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+        {/* Hero Section */}
+        <section className="bg-gradient-to-br from-zinc-900 to-zinc-950 border border-zinc-800 rounded-3xl p-6 sm:p-8 mb-8">
+          <div className="max-w-3xl">
+            <p className="text-zinc-400 text-sm uppercase tracking-wider mb-3">
+              Business Dashboard
+            </p>
+
+            <h2 className="text-3xl sm:text-4xl font-bold leading-tight">
+              Manage your shop operations efficiently
+            </h2>
+
+            <p className="text-zinc-400 mt-4 text-sm sm:text-base leading-relaxed">
+              Track inventory, manage customers, monitor sales, and organize
+              your business from one clean dashboard.
+            </p>
+          </div>
+        </section>
+
+        {/* Quick Links */}
+        <section>
+          <div className="flex items-center justify-between mb-5">
+            <h3 className="text-lg font-semibold">Quick Access</h3>
+
+            <p className="text-zinc-500 text-sm">{quickLinks.length} modules</p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
             {quickLinks.map((item) => (
               <button
                 key={item.title}
                 onClick={() => navigate(item.path)}
-                className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 text-left hover:border-zinc-700 hover:bg-zinc-900/80 transition"
+                className="group bg-zinc-900/80 border border-zinc-800 hover:border-zinc-700 rounded-2xl p-5 text-left transition-all duration-200 hover:-translate-y-1"
               >
-                {" "}
-                <h3 className="text-lg font-medium"> {item.title} </h3>{" "}
-                <p className="text-zinc-400 text-sm mt-2">
-                  {" "}
-                  {item.description}{" "}
-                </p>{" "}
+                <div className="flex flex-col h-full justify-between min-h-[170px]">
+                  <div>
+                    <h2 className="text-lg font-semibold group-hover:text-white">
+                      {item.title}
+                    </h2>
+
+                    <p className="text-zinc-400 text-sm mt-3 leading-relaxed">
+                      {item.description}
+                    </p>
+                  </div>
+
+                  <div className="mt-6 flex items-center text-sm text-zinc-500 group-hover:text-zinc-300 transition">
+                    Open
+                    <span className="ml-2 transition-transform group-hover:translate-x-1">
+                      →
+                    </span>
+                  </div>
+                </div>
               </button>
-            ))}{" "}
-          </div>{" "}
-        </section>{" "}
-      </main>{" "}
+            ))}
+          </div>
+        </section>
+      </main>
     </div>
   );
 };
+
 export default Home;

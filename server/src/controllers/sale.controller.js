@@ -1,132 +1,52 @@
-const pool = require("../db/db");
 const saleService = require("../services/sale.service");
 
+/**
+ * Creates a new sale order.
+ * Expects customer_id, user_id, and an array of items in the request body.
+ */
 const createSale = async (req, res) => {
-  const client = await pool.connect();
-  console.log(req.body);
-  const { customer_id, user_id, items } = req.body;
-
   try {
-    await client.query("BEGIN");
-
-    let totalAmount = 0;
-
-    // Calculate totals
-    for (const item of items) {
-      const productResult = await client.query(
-        `
-        SELECT *
-        FROM products
-        WHERE id = $1
-        `,
-        [item.product_id],
-      );
-
-      const product = productResult.rows[0];
-
-      if (!product) {
-        throw new Error("Product not found");
-      }
-
-      if (product.stock_qty < item.quantity) {
-        throw new Error(`${product.name} out of stock`);
-      }
-
-      totalAmount += Number(product.price) * item.quantity;
-    }
-
-    // Create sale
-    const saleResult = await client.query(
-      `
-      INSERT INTO sales
-      (customer_id, user_id, total_amount)
-      VALUES ($1, $2, $3)
-      RETURNING *
-      `,
-      [customer_id, user_id, totalAmount],
-    );
-
-    const sale = saleResult.rows[0];
-
-    // Create sale items + reduce stock
-    for (const item of items) {
-      const productResult = await client.query(
-        `
-        SELECT *
-        FROM products
-        WHERE id = $1
-        `,
-        [item.product_id],
-      );
-
-      const product = productResult.rows[0];
-
-      const subtotal = Number(product.price) * item.quantity;
-
-      // Insert sale item
-      await client.query(
-        `
-        INSERT INTO sale_items
-        (
-          sale_id,
-          product_id,
-          quantity,
-          unit_price,
-          subtotal
-        )
-        VALUES ($1, $2, $3, $4, $5)
-        `,
-        [sale.id, item.product_id, item.quantity, product.price, subtotal],
-      );
-
-      // Reduce stock
-      await client.query(
-        `
-        UPDATE products
-        SET stock_qty = stock_qty - $1
-        WHERE id = $2
-        `,
-        [item.quantity, item.product_id],
-      );
-    }
-
-    await client.query("COMMIT");
-
-    return sale;
+    const sale = await saleService.createSale(req.body);
+    return res.status(201).json(sale);
   } catch (error) {
-    await client.query("ROLLBACK");
-
-    throw error;
-  } finally {
-    client.release();
+    console.error(error);
+    if (
+      error.message === "Product not found" ||
+      error.message.includes("out of stock") ||
+      error.message === "Sale must contain at least one item"
+    ) {
+      return res.status(400).json({ error: error.message });
+    }
+    return res.status(500).json({ error: "Failed to create sale" });
   }
 };
 
+/**
+ * Fetches all sales from the database.
+ */
 const getSales = async (req, res) => {
-  const result = await pool.query(
-    `
-    SELECT *
-    FROM sales
-    ORDER BY created_at DESC
-    `,
-  );
-
-  console.log(result.rows);
-
-  return res.json(result.rows);
+  try {
+    const sales = await saleService.getSales();
+    return res.json(sales);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: "Failed to fetch sales" });
+  }
 };
 
+/**
+ * Fetches a specific sale by its ID, including all purchased line-items.
+ */
 const getSaleById = async (req, res) => {
   try {
     const sale = await saleService.getSaleById(req.params.id);
-
+    if (!sale) {
+      return res.status(404).json({ error: "Sale not found" });
+    }
     return res.json(sale);
   } catch (error) {
     console.error(error);
-
-    return res.status(500).json({
-      error: "Failed to fetch sale",
-    });
+    return res.status(500).json({ error: "Failed to fetch sale" });
   }
 };
 
@@ -135,3 +55,5 @@ module.exports = {
   getSales,
   getSaleById,
 };
+
+

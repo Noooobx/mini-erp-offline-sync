@@ -1,5 +1,10 @@
 const pool = require("../db/db");
 
+/**
+ * Retrieves all active customer profiles from the database.
+ * Explicitly filters out soft-deleted records.
+ * @returns {Array} List of customer objects.
+ */
 const getAllCustomers = async () => {
   const result = await pool.query(
     `
@@ -13,11 +18,12 @@ const getAllCustomers = async () => {
   return result.rows;
 };
 
-const createCustomer = async ({
-  name,
-  phone,
-  address,
-}) => {
+/**
+ * Inserts a new customer record.
+ * Generates an error automatically if unique constraints (like phone) are violated.
+ * @returns {Object} The newly created customer.
+ */
+const createCustomer = async ({ name, phone, address }) => {
   const result = await pool.query(
     `
     INSERT INTO customers
@@ -31,10 +37,12 @@ const createCustomer = async ({
   return result.rows[0];
 };
 
-const updateCustomer = async (
-  id,
-  { name, phone, address }
-) => {
+/**
+ * Mutates an existing customer's basic contact details based on their ID.
+ * Refreshes the updated_at timestamp natively.
+ * @returns {Object} The updated customer.
+ */
+const updateCustomer = async (id, { name, phone, address }) => {
   const result = await pool.query(
     `
     UPDATE customers
@@ -52,6 +60,10 @@ const updateCustomer = async (
   return result.rows[0];
 };
 
+/**
+ * Soft deletes a customer by flagging is_deleted to TRUE.
+ * Ensures historical sales records for this customer do not crash due to foreign key constraints.
+ */
 const deleteCustomer = async (id) => {
   await pool.query(
     `

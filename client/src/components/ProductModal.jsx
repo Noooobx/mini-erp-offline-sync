@@ -37,24 +37,30 @@ const ProductModal = ({ isOpen, onClose, onSubmit, selectedProduct }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
     onSubmit(formData);
   };
 
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50">
-      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl w-full max-w-md p-6">
+      <div className="w-full max-w-lg bg-zinc-900 border border-zinc-800 rounded-3xl p-6">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold">
-            {selectedProduct ? "Edit Product" : "Add Product"}
-          </h2>
+          <div>
+            <p className="text-zinc-500 text-sm">Product Management</p>
 
-          <button onClick={onClose} className="text-zinc-400 hover:text-white">
+            <h2 className="text-2xl font-semibold mt-1">
+              {selectedProduct ? "Edit Product" : "Create Product"}
+            </h2>
+          </div>
+
+          <button
+            onClick={onClose}
+            className="text-zinc-500 hover:text-white text-lg"
+          >
             ✕
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4 mt-6">
           <input
             type="text"
             name="name"
@@ -62,7 +68,7 @@ const ProductModal = ({ isOpen, onClose, onSubmit, selectedProduct }) => {
             value={formData.name}
             onChange={handleChange}
             required
-            className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-3 outline-none focus:border-zinc-700"
+            className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 outline-none focus:border-zinc-700"
           />
 
           <input
@@ -71,41 +77,43 @@ const ProductModal = ({ isOpen, onClose, onSubmit, selectedProduct }) => {
             placeholder="Barcode"
             value={formData.barcode}
             onChange={handleChange}
-            className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-3 outline-none focus:border-zinc-700"
+            className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 outline-none focus:border-zinc-700"
           />
 
-          <input
-            type="number"
-            name="price"
-            placeholder="Price"
-            value={formData.price}
-            onChange={handleChange}
-            required
-            className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-3 outline-none focus:border-zinc-700"
-          />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <input
+              type="number"
+              name="price"
+              placeholder="Price"
+              value={formData.price}
+              onChange={handleChange}
+              required
+              className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 outline-none focus:border-zinc-700"
+            />
 
-          <input
-            type="number"
-            name="stock_qty"
-            placeholder="Stock Quantity"
-            value={formData.stock_qty}
-            onChange={handleChange}
-            required
-            className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-3 outline-none focus:border-zinc-700"
-          />
+            <input
+              type="number"
+              name="stock_qty"
+              placeholder="Stock Quantity"
+              value={formData.stock_qty}
+              onChange={handleChange}
+              required
+              className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 outline-none focus:border-zinc-700"
+            />
+          </div>
 
-          <div className="flex justify-end gap-3 pt-2">
+          <div className="flex justify-end gap-3 pt-3">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 transition"
+              className="px-5 py-3 rounded-xl bg-zinc-800 hover:bg-zinc-700"
             >
               Cancel
             </button>
 
             <button
               type="submit"
-              className="px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-600 transition"
+              className="px-5 py-3 rounded-xl bg-white text-black hover:bg-zinc-200 font-medium"
             >
               {selectedProduct ? "Update" : "Create"}
             </button>

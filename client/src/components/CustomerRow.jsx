@@ -1,49 +1,33 @@
-const CustomerRow = ({
-  customer,
-  onEdit,
-  onDelete,
-}) => {
+const CustomerRow = ({ customer, onEdit, onDelete }) => {
   return (
-    <tr className="border-b border-zinc-800 hover:bg-zinc-800/30 transition">
+    <tr className="border-b border-zinc-800 hover:bg-zinc-800/20">
+      <td className="p-4 font-medium whitespace-nowrap">{customer.name}</td>
 
-      <td className="p-4">
-        {customer.name}
+      <td className="p-4 text-zinc-400 whitespace-nowrap">
+        {customer.phone || "-"}
       </td>
 
-      <td className="p-4 text-zinc-400">
-        {customer.phone}
-      </td>
-
-      <td className="p-4">
-        {customer.address}
+      <td className="p-4 text-zinc-400 max-w-[320px] truncate">
+        {customer.address || "-"}
       </td>
 
       <td className="p-4">
-
         <div className="flex gap-2">
-
           <button
-            onClick={() =>
-              onEdit(customer)
-            }
-            className="px-3 py-1 rounded-md bg-zinc-800 hover:bg-zinc-700 text-sm transition"
+            onClick={() => onEdit(customer)}
+            className="px-3 py-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-sm"
           >
             Edit
           </button>
 
           <button
-            onClick={() =>
-              onDelete(customer.id)
-            }
-            className="px-3 py-1 rounded-md bg-red-500/20 text-red-400 hover:bg-red-500/30 text-sm transition"
+            onClick={() => onDelete(customer.id)}
+            className="px-3 py-2 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 text-sm"
           >
             Delete
           </button>
-
         </div>
-
       </td>
-
     </tr>
   );
 };

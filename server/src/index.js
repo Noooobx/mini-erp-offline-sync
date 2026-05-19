@@ -8,16 +8,24 @@ const dashboardRoutes = require("./routes/dashboard.routes");
 
 require("dotenv").config();
 
+// Initialize core Express server application
 const app = express();
 
-app.use(cors());
-app.use(express.json());
+// --- Global Middleware Setup ---
+app.use(cors()); // Allow cross-origin requests from the React frontend
+app.use(express.json()); // Automatically parse incoming JSON API bodies
 
+// --- Endpoint Routing Setup ---
 app.use("/products", productRoutes);
 app.use("/customers", customerRoutes);
 app.use("/sales", saleRoutes);
 app.use("/dashboard", dashboardRoutes);
 
+/**
+ * Root health-check endpoint.
+ * Very useful for automated load balancers (like AWS or Render) to verify the server is alive.
+ * It also pings the DB to confirm the database handshake is active.
+ */
 app.get("/", async (req, res) => {
   try {
     const result = await pool.query("SELECT current_database()");
@@ -33,8 +41,11 @@ app.get("/", async (req, res) => {
   }
 });
 
+// Configure dynamic port resolving (useful for Heroku/Render)
 const PORT = process.env.PORT || 5000;
 
+// Ignite the server on the specified port
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+

@@ -170,10 +170,14 @@ const processPushEvents = async (events) => {
     // Lock in the database changes!
     await client.query("COMMIT");
   } catch (error) {
-    await client.query("ROLLBACK");
+    if (client) await client.query("ROLLBACK");
+    console.error("DATABASE TRANSACTION FAILED!");
+    console.error("Error Detail:", error.detail || "None");
+    console.error("Error Hint:", error.hint || "None");
+    console.error("Error Code:", error.code || "None");
     throw error;
   } finally {
-    client.release();
+    if (client) client.release();
   }
 };
 

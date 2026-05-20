@@ -36,8 +36,13 @@ const pushSync = async (req, res) => {
     
     return res.json({ message: "Sync Push Successful" });
   } catch (error) {
-    console.error("Push Sync Error:", error);
-    return res.status(500).json({ error: "Failed to process push events" });
+    console.error("CRITICAL PUSH SYNC ERROR:", error.message);
+    console.error("Error Detail:", error.detail || "No detail available");
+    console.error("Failed Events Sample:", events.slice(0, 3));
+    return res.status(500).json({ 
+      error: "Failed to process push events",
+      details: error.message 
+    });
   }
 };
 

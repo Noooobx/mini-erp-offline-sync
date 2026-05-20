@@ -7,7 +7,7 @@ const db = new Dexie("MiniERpDatabase");
 // 2. Define the structural schema (the tables).
 // In Dexie, you don't list every single column. You only list the Primary Key ('id')
 // and any columns you plan to quickly search/filter by.
-db.version(1).stores({
+db.version(2).stores({
   products: "id, name, stock_qty",
   customers: "id, name",
   sales: "id, created_at",

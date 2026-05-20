@@ -11,8 +11,8 @@ export const syncWithServer = async () => {
     // ==========================================
     // If the user has data in Dexie from BEFORE we added the Outbox, 
     // it will never sync because the Outbox is empty. We fix that here once.
-    if (!localStorage.getItem("reconciliation_done_v1")) {
-      console.log("Starting one-time data reconciliation...");
+    if (!localStorage.getItem("reconciliation_done_v2")) {
+      console.log("Starting one-time data reconciliation (v2)...");
       
       const products = await db.products.toArray();
       const customers = await db.customers.toArray();

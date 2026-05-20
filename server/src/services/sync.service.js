@@ -29,7 +29,12 @@ const pullChanges = async (since) => {
     [since],
   );
 
+  // Get the database's exact current time to serve as the new baseline
+  const timestampResult = await pool.query("SELECT CURRENT_TIMESTAMP as time");
+  const serverTimestamp = timestampResult.rows[0].time;
+
   return {
+    serverTimestamp,
     products: products.rows,
     customers: customers.rows,
     sales: sales.rows,

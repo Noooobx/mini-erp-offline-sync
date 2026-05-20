@@ -28,7 +28,10 @@ export const syncWithServer = async () => {
         console.log(`Reconciled ${events.length} legacy items into the Outbox.`);
       }
       
-      localStorage.setItem("reconciliation_done_v1", "true");
+      // For the time drift fix, force a full resync!
+      localStorage.removeItem("lastSyncTime");
+      
+      localStorage.setItem("reconciliation_done_v2", "true");
     }
 
     // ==========================================
@@ -59,16 +62,19 @@ export const syncWithServer = async () => {
     
     // Ask the server for the Delta
     const response = await api.get(`/sync/pull?since=${lastSyncTime}`);
-    const { products, customers, sales, saleItems } = response.data;
+    const { serverTimestamp, products, customers, sales, saleItems } = response.data;
     
     // bulkPut will effortlessly dump all the new rows straight into your Dexie local database
-    if (products.length > 0) await db.products.bulkPut(products);
-    if (customers.length > 0) await db.customers.bulkPut(customers);
-    if (sales.length > 0) await db.sales.bulkPut(sales);
-    if (saleItems.length > 0) await db.sale_items.bulkPut(saleItems);
+    if (products?.length > 0) await db.products.bulkPut(products);
+    if (customers?.length > 0) await db.customers.bulkPut(customers);
+    if (sales?.length > 0) await db.sales.bulkPut(sales);
+    if (saleItems?.length > 0) await db.sale_items.bulkPut(saleItems);
     
-    // Finally, we log this exact moment to LocalStorage so we don't download these rows again tomorrow!
-    localStorage.setItem('lastSyncTime', new Date().toISOString());
+    // THE FIX: We must use the SERVER'S CLOCK as the single source of truth, NOT `new Date().toISOString()`.
+    // If the phone's local clock is accidentally 5 mins fast, it skips records created by laptops with correct clocks.
+    if (serverTimestamp) {
+      localStorage.setItem('lastSyncTime', serverTimestamp);
+    }
     
   } catch (error) {
     // If the server crashes or the Wi-Fi drops mid-sync, we just quietly catch the error.

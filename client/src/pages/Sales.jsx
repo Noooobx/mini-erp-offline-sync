@@ -75,6 +75,10 @@ const Sales = () => {
     );
   }, [saleItems]);
 
+  const totalQuantity = useMemo(() => {
+    return saleItems.reduce((total, item) => total + item.quantity, 0);
+  }, [saleItems]);
+
   const handleCreateSale = async () => {
     try {
       const payload = {
@@ -169,7 +173,7 @@ const Sales = () => {
                 <p className="text-zinc-500 text-sm">Quantity</p>
 
                 <h2 className="text-2xl font-semibold mt-2">
-                  {saleItems.reduce((total, item) => total + item.quantity, 0)}
+                  {totalQuantity}
                 </h2>
               </div>
 

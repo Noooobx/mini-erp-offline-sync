@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import CustomerTable from "../components/CustomerTable";
 import CustomerModal from "../components/CustomerModal";
 
@@ -13,6 +13,14 @@ const Customers = () => {
   const [customers, setCustomers] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
+
+  const withPhoneCount = useMemo(() => {
+    return customers.filter((item) => item.phone).length;
+  }, [customers]);
+
+  const withAddressCount = useMemo(() => {
+    return customers.filter((item) => item.address).length;
+  }, [customers]);
 
   const fetchCustomers = async () => {
     try {
@@ -112,17 +120,13 @@ const Customers = () => {
             <div className="bg-zinc-950 border border-zinc-800 rounded-2xl p-4">
               <p className="text-zinc-500 text-sm">With Phone</p>
 
-              <h2 className="text-2xl font-semibold mt-2">
-                {customers.filter((item) => item.phone).length}
-              </h2>
+              <h2 className="text-2xl font-semibold mt-2">{withPhoneCount}</h2>
             </div>
 
             <div className="bg-zinc-950 border border-zinc-800 rounded-2xl p-4">
               <p className="text-zinc-500 text-sm">With Address</p>
 
-              <h2 className="text-2xl font-semibold mt-2">
-                {customers.filter((item) => item.address).length}
-              </h2>
+              <h2 className="text-2xl font-semibold mt-2">{withAddressCount}</h2>
             </div>
 
             <div className="bg-zinc-950 border border-zinc-800 rounded-2xl p-4">

@@ -7,6 +7,31 @@ export const syncWithServer = async () => {
 
   try {
     // ==========================================
+    // 0. RECONCILIATION: FIXING "STUCK" DATA
+    // ==========================================
+    // If the user has data in Dexie from BEFORE we added the Outbox, 
+    // it will never sync because the Outbox is empty. We fix that here once.
+    if (!localStorage.getItem("reconciliation_done_v1")) {
+      console.log("Starting one-time data reconciliation...");
+      
+      const products = await db.products.toArray();
+      const customers = await db.customers.toArray();
+      const sales = await db.sales.toArray();
+      
+      const events = [];
+      products.forEach(p => events.push({ action: 'INSERT', table: 'products', data: p, timestamp: p.updated_at || new Date().toISOString() }));
+      customers.forEach(c => events.push({ action: 'INSERT', table: 'customers', data: c, timestamp: c.updated_at || new Date().toISOString() }));
+      sales.forEach(s => events.push({ action: 'INSERT', table: 'sales', data: s, timestamp: s.created_at || new Date().toISOString() }));
+      
+      if (events.length > 0) {
+        await db.outbox.bulkAdd(events);
+        console.log(`Reconciled ${events.length} legacy items into the Outbox.`);
+      }
+      
+      localStorage.setItem("reconciliation_done_v1", "true");
+    }
+
+    // ==========================================
     // 1. PUSH: EMTPYING THE OUTBOX
     // ==========================================
     

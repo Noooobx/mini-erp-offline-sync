@@ -5,6 +5,7 @@ const productRoutes = require("./routes/product.routes");
 const customerRoutes = require("./routes/customer.routes");
 const saleRoutes = require("./routes/sale.routes");
 const dashboardRoutes = require("./routes/dashboard.routes");
+const syncRoutes = require("./routes/sync.routes");
 
 require("dotenv").config();
 
@@ -20,6 +21,8 @@ app.use("/products", productRoutes);
 app.use("/customers", customerRoutes);
 app.use("/sales", saleRoutes);
 app.use("/dashboard", dashboardRoutes);
+app.use("/sync", syncRoutes);
+
 
 /**
  * Root health-check endpoint.

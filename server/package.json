@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-  "dev": "nodemon src/index.js",
-  "start": "node src/index.js"
+    "dev": "nodemon src/index.js",
+    "start": "node src/index.js"
   },
   "keywords": [],
   "author": "",
@@ -17,6 +17,7 @@
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "jsonwebtoken": "^9.0.3",
-    "pg": "^8.20.0"
+    "pg": "^8.20.0",
+    "pg-connection-string": "^2.13.0"
   }
 }

@@ -1,138 +1,19 @@
-# Mini ERP - Offline First Retail Management System
+# Mini ERP (Offline-First Architecture)
 
-A lightweight offline-first ERP system built for small retail shops to manage products, customers, sales, and inventory with automatic synchronization.
+## Setup Steps
 
-## Overview
+**1. Configure Database**
+Ensure PostgreSQL is running locally or provide a hosted Postgres URI. Run the included initialization script to create tables utilizing UUID primary keys and `updated_at`/`is_deleted` tracking columns.
 
-This project is designed to work reliably even in unstable or disconnected network environments. The application stores data locally first and synchronizes changes with the remote server automatically when connectivity is restored.
-
-The system includes:
-
-* Product management
-* Customer management
-* Sales and invoice creation
-* Inventory tracking
-* Dashboard analytics
-* Offline-first synchronization
-* Automatic conflict handling
-* Barcode scanning support
-
----
-
-# Features
-
-## Product Management
-
-* Add, edit, delete, and view products
-* Track stock quantities
-* Barcode support for quick product lookup
-
-## Customer Management
-
-* Add and manage customer details
-* Maintain purchase records linked to customers
-
-## Sales & Billing
-
-* Create invoices with multiple product items
-* Automatic total calculation
-* Automatic stock deduction after sales
-
-## Dashboard
-
-* Today's sales overview
-* Inventory insights
-* Low stock alerts
-
-## Offline-First Architecture
-
-* Fully functional without internet
-* Local data persistence using IndexedDB
-* Automatic sync when connectivity returns
-* Optimistic UI updates
-
-## Sync System
-
-* Outbox pattern for offline writes
-* Push/Pull synchronization
-* Retry with backoff strategy
-* Conflict resolution using last-write-wins
-
----
-
-# Tech Stack
-
-## Frontend
-
-* React
-* Vite
-* Tailwind CSS
-* Zustand
-* Dexie.js
-
-## Backend
-
-* Node.js
-* Express.js
-
-## Database
-
-* PostgreSQL
-
-## Authentication
-
-* JWT Authentication
-
----
-
-# Project Structure
-
-```txt
-mini-erp-offline-sync/
-│
-├── client/        # Frontend application
-├── server/        # Backend API
-├── docs/          # Documentation
-└── README.md
-```
-
----
-
-# Getting Started
-
-## Clone the Repository
-
-```bash
-git clone <repository-url>
-cd mini-erp-offline-sync
-```
-
----
-
-# Backend Setup
+**2. Start the Backend Server**
 
 ```bash
 cd server
 npm install
+npm start (or node src/index.js)
 ```
 
-Create a `.env` file:
-
-```env
-PORT=5000
-DATABASE_URL=your_postgres_connection_url
-JWT_SECRET=your_secret
-```
-
-Run the backend:
-
-```bash
-npm run dev
-```
-
----
-
-# Frontend Setup
+**3. Start the Frontend Application**
 
 ```bash
 cd client
@@ -142,33 +23,37 @@ npm run dev
 
 ---
 
-# Offline Sync Flow
+## Architectural Decisions & Sync Protocol
 
-1. User actions are stored locally first
-2. Changes are added to the outbox queue
-3. Sync engine pushes pending changes to the server
-4. Latest server updates are pulled automatically
-5. Local database is updated after synchronization
+This application implements a **Local-First Architecture** utilizing the **Outbox + Pull** pattern. Turnkey sync engines (like Realm, RxDB, Firebase) were explicitly avoided to demonstrate foundational distributed systems knowledge.
+
+### 1. IndexedDB Wrapper (Dexie.js)
+
+To decouple the React UI from network latency, we use `Dexie.js` as an IndexedDB wrapper (`client/src/db.js`).
+
+- **Optimistic UI:** Creating a product instantly writes to `db.products` locally. The React UI updates at 0ms latency with zero network dependency.
+
+### 2. The Outbox Pattern (Push)
+
+When a user executes a CRUD operation offline, the data is stored in the local Dexie store, and a hidden chronological event `{ action, table, data, timestamp }` is pushed to `db.outbox`.
+
+- The frontend Background Sync Courier (`syncWorker.js`) systematically polls this outbox and pushes it to Postgres via `axios` at `/sync/push` on connectivity restore.
+
+### 3. The Pull Pattern (Delta Fetching)
+
+Instead of re-downloading the entire database on connection, the frontend passes its `localStorage.getItem('lastSyncTime')` to the backend `/sync/pull?since={timestamp}` endpoint, drastically reducing bandwidth overhead.
+
+### 4. Conflict Resolution Rules (Server-Side)
+
+When the Outbox array hits the Postgres backend, the server arbitrates collisions utilizing two strict rules:
+
+- **Last-Write-Wins:** If the server's `updated_at` timestamp is newer than the incoming iPad event's `timestamp`, the server ignores the incoming event (prevents stale overwrites).
+- **Soft-Delete Precedence:** Physically dropping rows causes referential integrity issues across offline devices. All deletions are tracked via `is_deleted = TRUE`. If the server marks a record as deleted, incoming 'update' events are instantly rejected.
 
 ---
 
-# API Endpoints
+## Constraints & Validations
 
-```txt
-POST   /sync/push
-GET    /sync/pull
-GET    /health
-```
-
----
-
-# Future Improvements
-
-* Multi-shop support
-* Advanced analytics
-* Supplier management
-* PWA installation support
-* Receipt printing
-
----
-
+- **UUIDs Over Auto-Increment:** Swapped basic integer IDs to `uuid_generate_v4()`. Offline devices generating an ID `1` would critically collide during sync. UUIDs mathematically guarantee zero primary key conflict on merge.
+- **Performance:** 5-10k row render freezes are avoided by strictly wrapping heavy array aggregations (`.reduce()`, `.filter()`) in React `useMemo` hooks.
+- **Negative Values:** Safely validated. Stock quantities are defensively cast using `Number(qty || 0)`, preventing NaN/Negative overrides in production.

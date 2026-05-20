@@ -1,3 +1,4 @@
+require("dotenv").config({ path: __dirname + "/.env" });
 const express = require("express");
 const cors = require("cors");
 const pool = require("./db/db");
@@ -6,8 +7,6 @@ const customerRoutes = require("./routes/customer.routes");
 const saleRoutes = require("./routes/sale.routes");
 const dashboardRoutes = require("./routes/dashboard.routes");
 const syncRoutes = require("./routes/sync.routes");
-
-require("dotenv").config();
 
 // Initialize core Express server application
 const app = express();

@@ -1,48 +1,62 @@
-import api from "./api";
+import db, { addToOutbox, generateId } from "../db";
 
+// 1. GET CUSTOMERS
 export const getCustomers = async () => {
-
-  const response =
-    await api.get("/customers");
-
-  return response.data;
+  // We only return customers that haven't been 'soft deleted' locally
+  return await db.customers.filter(c => !c.is_deleted).toArray();
 };
 
-export const createCustomer = async (
-  customerData
-) => {
+// 2. CREATE CUSTOMER
+export const createCustomer = async (customerData) => {
+  // A - Instantly generate a UUID offline
+  const newCustomer = {
+    ...customerData,
+    id: generateId(),
+    is_deleted: false,
+    updated_at: new Date().toISOString()
+  };
 
-  const response =
-    await api.post(
-      "/customers",
-      customerData
-    );
+  // B - Save to Local Database (so the React UI updates instantly)
+  await db.customers.add(newCustomer);
 
-  return response.data;
+  // C - Put the 'CREATE' letter in the Outbox
+  await addToOutbox('CREATE', 'customers', newCustomer);
+
+  return newCustomer;
 };
 
-export const updateCustomer = async (
-  id,
-  customerData
-) => {
+// 3. EDIT CUSTOMER
+export const updateCustomer = async (id, updateData) => {
+  const updatedCustomer = {
+    ...updateData,
+    id,
+    updated_at: new Date().toISOString()
+  };
 
-  const response =
-    await api.put(
-      `/customers/${id}`,
-      customerData
-    );
+  // A - Update locally 
+  await db.customers.put(updatedCustomer);
 
-  return response.data;
+  // B - Log to Outbox for when internet reconnects
+  await addToOutbox('UPDATE', 'customers', updatedCustomer);
+
+  return updatedCustomer;
 };
 
-export const deleteCustomer = async (
-  id
-) => {
-
-  const response =
-    await api.delete(
-      `/customers/${id}`
-    );
-
-  return response.data;
+// 4. DELETE CUSTOMER
+export const deleteCustomer = async (id) => {
+  // When offline, we do not physically delete records. We do a "Soft Delete" locally.
+  const customer = await db.customers.get(id);
+  if (!customer) return;
+  
+  const deletedCustomer = {
+    ...customer,
+    is_deleted: true, // We hide it!
+    updated_at: new Date().toISOString()
+  };
+  
+  // A - Soft delete locally (React filters it out)
+  await db.customers.put(deletedCustomer);
+  
+  // B - Tell the Outbox to send the hard server DELETE later
+  await addToOutbox('DELETE', 'customers', { id });
 };

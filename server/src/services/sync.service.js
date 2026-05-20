@@ -92,6 +92,20 @@ const processPushEvents = async (events) => {
             [timestamp, data.id],
           );
         } else {
+          // --- CONFLICT RESOLUTION: DUPLICATE BARCODE ---
+          // Since the user is offline, they might accidentally use a barcode that already exists 
+          // on the server. If we let Postgres enforce the UNIQUE constraint, it will crash the entire sync!
+          if (data.barcode) {
+            const barcodeCheck = await client.query(
+              `SELECT id FROM products WHERE barcode = $1 AND id != $2 AND is_deleted = FALSE`,
+              [data.barcode, data.id]
+            );
+            if (barcodeCheck.rows.length > 0) {
+              console.warn(`Duplicate barcode detected for offline item ${data.name}. Appending conflict suffix.`);
+              data.barcode = `${data.barcode}-dup-${data.id.substring(0,4)}`;
+            }
+          }
+
           // UPSERT (Insert OR Update): If it doesn't exist, create it. If it DOES exist, overwrite it.
           await client.query(
             `

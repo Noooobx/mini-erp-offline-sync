@@ -2,6 +2,7 @@ import React, { createContext, useState, useEffect } from 'react';
 import axios from 'axios';
 import api from '../services/api';
 import db from '../db';
+import { toast } from 'react-hot-toast';
 
 export const AuthContext = createContext();
 
@@ -47,7 +48,12 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('lastSyncTime'); // CRITICAL: Reset sync clock!
     // CRITICAL: Wipe the old shop's offline data entirely so the next login doesn't see it!
     await db.delete();
-    window.location.reload(); // Reload to recreate the Dexie db instance cleanly
+    
+    toast.success("Successfully logged out!", { icon: '👋' });
+
+    setTimeout(() => {
+      window.location.reload(); // Reload to recreate the Dexie db instance cleanly after showing toast
+    }, 800);
   };
 
   return (

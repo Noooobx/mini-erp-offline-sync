@@ -1,7 +1,7 @@
 import { useEffect, useContext } from "react";
 import AppRoutes from "./routes/AppRoutes";
-import { syncWithServer } from "./services/syncWorker"; // Import our new courier!
 import { AuthContext } from "./context/AuthContext";
+import { Toaster } from "react-hot-toast";
 
 const App = () => {
   const { isAuthenticated } = useContext(AuthContext);
@@ -28,7 +28,12 @@ const App = () => {
     };
   }, [isAuthenticated]);
 
-  return <AppRoutes />;
+  return (
+    <>
+      <Toaster position="top-right" />
+      <AppRoutes />
+    </>
+  );
 };
 
 export default App;

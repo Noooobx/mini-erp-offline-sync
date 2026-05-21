@@ -44,6 +44,7 @@ export const AuthProvider = ({ children }) => {
   const logout = async () => {
     setToken(null);
     setShopId(null);
+    localStorage.removeItem('lastSyncTime'); // CRITICAL: Reset sync clock!
     // CRITICAL: Wipe the old shop's offline data entirely so the next login doesn't see it!
     await db.delete();
     window.location.reload(); // Reload to recreate the Dexie db instance cleanly

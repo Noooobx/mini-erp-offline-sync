@@ -1,7 +1,10 @@
 import { useNavigate } from "react-router-dom";
+import { useContext } from "react";
+import { AuthContext } from "../context/AuthContext";
 
 const Home = () => {
   const navigate = useNavigate();
+  const { logout } = useContext(AuthContext);
 
   const quickLinks = [
     {
@@ -29,11 +32,18 @@ const Home = () => {
   return (
     <div className="min-h-screen bg-zinc-950 text-white">
       {/* Navbar */}
-      <header className="border-b border-zinc-800 bg-zinc-950/95 backdrop-blur">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4">
-          <h1 className="text-2xl font-semibold tracking-tight">Shop Pilot</h1>
-
-          <p className="text-zinc-400 text-sm mt-1">Retail management system</p>
+      <header className="border-b border-zinc-800 bg-zinc-950/95 backdrop-blur flex justify-between items-center px-4 sm:px-6 py-4">
+        <div className="max-w-7xl mx-auto w-full flex justify-between items-center">
+          <div>
+            <h1 className="text-2xl font-semibold tracking-tight">Shop Pilot</h1>
+            <p className="text-zinc-400 text-sm mt-1">Retail management system</p>
+          </div>
+          <button 
+            onClick={logout}
+            className="bg-red-500/10 text-red-500 hover:bg-red-500/20 border border-red-500/20 px-4 py-2 rounded-xl text-sm font-medium transition-all"
+          >
+            Logout
+          </button>
         </div>
       </header>
 

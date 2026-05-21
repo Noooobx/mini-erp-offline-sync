@@ -49,8 +49,8 @@ const ProductTable = ({ products, onEdit, onDelete }) => {
 
       {/* Pagination Controls */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-between px-5 py-4 border-t border-zinc-800 bg-zinc-950/20">
-          <p className="text-zinc-500 text-sm">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-5 py-4 border-t border-zinc-800 bg-zinc-950/20">
+          <p className="text-zinc-500 text-sm text-center sm:text-left">
             Showing <span className="font-medium text-zinc-300">{startIndex + 1}</span> to <span className="font-medium text-zinc-300">{Math.min(startIndex + ITEMS_PER_PAGE, products.length)}</span> of <span className="font-medium text-zinc-300">{products.length}</span> results
           </p>
           <div className="flex items-center gap-2">

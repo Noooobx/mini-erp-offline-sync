@@ -11,7 +11,7 @@ const getAllProducts = async () => {
     SELECT *
     FROM products
     WHERE is_deleted = FALSE
-    ORDER BY created_at DESC
+    ORDER BY updated_at DESC
     `
   );
 

@@ -84,6 +84,23 @@ const Home = () => {
           </div>
         </section>
       </main>
+
+      {/* Footer */}
+      <footer className="border-t border-zinc-900 bg-zinc-950 py-6 mt-auto">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <p className="text-zinc-500 text-sm">
+            © {new Date().getFullYear()} Shop Pilot. All rights reserved.
+          </p>
+          <div className="flex items-center gap-6 text-sm text-zinc-400">
+            <a href="mailto:nandunandakishor345@gmail.com" className="hover:text-zinc-200 transition-colors">
+              nandunandakishor345@gmail.com
+            </a>
+            <a href="tel:9778129217" className="hover:text-zinc-200 transition-colors">
+              +91 9778129217
+            </a>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 };

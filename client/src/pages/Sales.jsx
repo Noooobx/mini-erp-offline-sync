@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useContext } from "react";
 
 import SalesTable from "../components/SalesTable";
 
@@ -7,8 +7,10 @@ import { getProducts } from "../services/product.service";
 import { getCustomers } from "../services/customer.service";
 
 import { createSale } from "../services/sale.service";
+import { AuthContext } from "../context/AuthContext";
 
 const Sales = () => {
+  const { logout } = useContext(AuthContext);
   const [products, setProducts] = useState([]);
 
   const [customers, setCustomers] = useState([]);
@@ -109,16 +111,24 @@ const Sales = () => {
         {/* Header */}
         <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-5 sm:p-6">
           <div className="flex flex-col gap-5">
-            <div>
-              <p className="text-zinc-500 text-sm uppercase tracking-wide">
-                Billing
-              </p>
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="text-zinc-500 text-sm uppercase tracking-wide">
+                  Billing
+                </p>
 
-              <h1 className="text-3xl font-bold mt-1">Sales</h1>
+                <h1 className="text-3xl font-bold mt-1">Sales</h1>
 
-              <p className="text-zinc-400 mt-2 text-sm sm:text-base">
-                Create invoices and manage sales transactions.
-              </p>
+                <p className="text-zinc-400 mt-2 text-sm sm:text-base">
+                  Create invoices and manage sales transactions.
+                </p>
+              </div>
+              <button 
+                onClick={logout}
+                className="bg-red-500/10 text-red-500 hover:bg-red-500/20 border border-red-500/20 px-4 py-2 rounded-xl text-sm font-medium transition-all"
+              >
+                Logout
+              </button>
             </div>
 
             {/* Controls */}

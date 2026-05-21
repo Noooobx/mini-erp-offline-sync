@@ -1,4 +1,5 @@
 import db, { addToOutbox, generateId } from "../db";
+import { scheduleSync } from "./syncWorker";
 
 // 1. GET PRODUCTS: Reads straight from the incredibly fast local browser database
 export const getProducts = async () => {
@@ -12,6 +13,7 @@ export const createProduct = async (productData) => {
   const newProduct = {
     ...productData,
     id: generateId(),
+    price: Number(productData.price || 0),
     stock_qty: Number(productData.stock_qty || 0),
     is_deleted: false,
     updated_at: new Date().toISOString(),
@@ -22,6 +24,7 @@ export const createProduct = async (productData) => {
 
   // C - Secretly put a letter in the Outbox for the Courier to send to the server later!
   await addToOutbox("CREATE", "products", newProduct);
+  scheduleSync();
 
   return newProduct;
 };
@@ -31,6 +34,7 @@ export const updateProduct = async (id, updateData) => {
   const updatedProduct = {
     ...updateData,
     id,
+    price: Number(updateData.price || 0),
     stock_qty: Number(updateData.stock_qty || 0),
     updated_at: new Date().toISOString(),
   };
@@ -40,6 +44,7 @@ export const updateProduct = async (id, updateData) => {
 
   // B - Log to Outbox
   await addToOutbox("UPDATE", "products", updatedProduct);
+  scheduleSync();
 
   return updatedProduct;
 };
@@ -61,4 +66,5 @@ export const deleteProduct = async (id) => {
 
   // B - Tell the Outbox to firmly DELETE it on the server when we get internet back
   await addToOutbox("DELETE", "products", { id });
+  scheduleSync();
 };

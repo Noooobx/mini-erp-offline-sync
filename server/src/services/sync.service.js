@@ -47,159 +47,165 @@ const pullChanges = async (since) => {
  * This is where we handle the crucial Conflict Resolution!
  */
 const processPushEvents = async (events) => {
-  const client = await pool.connect();
+  const succeededEventIds = [];
+  const failedEvents = [];
+  const tablePriority = {
+    products: 0,
+    customers: 1,
+    sales: 2,
+    sale_items: 3,
+  };
 
-  try {
-    await client.query("BEGIN");
+  events.sort((a, b) => {
+    const priorityDiff = (tablePriority[a.table] ?? 99) - (tablePriority[b.table] ?? 99);
+    if (priorityDiff !== 0) return priorityDiff;
+    return new Date(a.timestamp) - new Date(b.timestamp);
+  });
 
-    // Make sure we process the events in the exact chronological order they happened locally
-    events.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+  for (let i = 0; i < events.length; i++) {
+    const event = events[i];
+    const { action, table, data, timestamp } = event;
+    const eventId = event.id;
+    const client = await pool.connect();
 
-    for (let i = 0; i < events.length; i++) {
-      const event = events[i];
-      const { action, table, data, timestamp } = event;
-      const savepointName = `sp_${i}`;
+    try {
+      await client.query("BEGIN");
+      await client.query("SET LOCAL statement_timeout = '8000ms'");
+      await client.query("SET LOCAL lock_timeout = '2000ms'");
 
-      try {
-        // Each event gets its own SAVEPOINT — if it fails, only this event rolls back
-        await client.query(`SAVEPOINT ${savepointName}`);
+      if (!["CREATE", "INSERT", "UPDATE", "UPSERT", "DELETE"].includes(action)) {
+        throw new Error(`Unsupported sync action: ${action}`);
+      }
 
-        // --- 1. CONFLICT RESOLUTION CHECKS ---
-        if (table === "products" || table === "customers") {
-          const result = await client.query(
-            `SELECT updated_at, is_deleted FROM ${table} WHERE id = $1`,
-            [data.id],
-          );
-          const currentRecord = result.rows[0];
+      // Last-Write-Wins and Soft-Delete constraints
+      if (table === "products" || table === "customers") {
+        const result = await client.query(
+          `SELECT updated_at, is_deleted FROM ${table} WHERE id = $1`,
+          [data.id],
+        );
+        const currentRecord = result.rows[0];
 
-          if (currentRecord) {
-            if (currentRecord.is_deleted && action !== "DELETE") {
-              await client.query(`RELEASE SAVEPOINT ${savepointName}`);
-              continue;
-            }
-            if (new Date(currentRecord.updated_at) > new Date(timestamp)) {
-              await client.query(`RELEASE SAVEPOINT ${savepointName}`);
-              continue;
-            }
+        if (currentRecord) {
+          if (currentRecord.is_deleted && action !== "DELETE") {
+            await client.query("COMMIT");
+            if (eventId !== undefined) succeededEventIds.push(eventId);
+            continue;
+          }
+          if (new Date(currentRecord.updated_at) > new Date(timestamp)) {
+            await client.query("COMMIT");
+            if (eventId !== undefined) succeededEventIds.push(eventId);
+            continue;
           }
         }
+      }
 
-        // --- 2. EXECUTE THE EVENTS ---
-        if (table === "products") {
-          if (action === "DELETE") {
-            await client.query(
-              `UPDATE products SET is_deleted = TRUE, updated_at = $1 WHERE id = $2`,
-              [timestamp, data.id],
-            );
-          } else {
-            // Duplicate barcode conflict resolution
-            if (data.barcode) {
-              const barcodeCheck = await client.query(
-                `SELECT id FROM products WHERE barcode = $1 AND id != $2 AND is_deleted = FALSE`,
-                [data.barcode, data.id]
-              );
-              if (barcodeCheck.rows.length > 0) {
-                console.warn(`Duplicate barcode detected for offline item ${data.name}. Appending conflict suffix.`);
-                data.barcode = `${data.barcode}-dup-${data.id.substring(0,4)}`;
-              }
-            }
-
-            await client.query(
-              `
-                INSERT INTO products (id, name, barcode, price, stock_qty, is_deleted, updated_at)
-                VALUES ($1, $2, $3, $4, $5, FALSE, $6)
-                ON CONFLICT (id) DO UPDATE SET
-                  name = EXCLUDED.name,
-                  barcode = EXCLUDED.barcode,
-                  price = EXCLUDED.price,
-                  stock_qty = EXCLUDED.stock_qty,
-                  updated_at = EXCLUDED.updated_at,
-                  is_deleted = FALSE
-             `,
-              [
-                data.id,
-                data.name,
-                data.barcode,
-                data.price,
-                data.stock_qty,
-                timestamp,
-              ],
-            );
-          }
-        } else if (table === "customers") {
-          if (action === "DELETE") {
-            await client.query(
-              `UPDATE customers SET is_deleted = TRUE, updated_at = $1 WHERE id = $2`,
-              [timestamp, data.id],
-            );
-          } else {
-            await client.query(
-              `
-                INSERT INTO customers (id, name, phone, address, is_deleted, updated_at)
-                VALUES ($1, $2, $3, $4, FALSE, $5)
-                ON CONFLICT (id) DO UPDATE SET
-                  name = EXCLUDED.name,
-                  phone = EXCLUDED.phone,
-                  address = EXCLUDED.address,
-                  updated_at = EXCLUDED.updated_at,
-                  is_deleted = FALSE
-             `,
-              [data.id, data.name, data.phone, data.address, timestamp],
-            );
-          }
-        } else if (table === "sales") {
+      if (table === "products") {
+        if (action === "DELETE") {
+          await client.query(
+            `UPDATE products SET is_deleted = TRUE, updated_at = $1 WHERE id = $2`,
+            [timestamp, data.id],
+          );
+        } else {
           await client.query(
             `
-             INSERT INTO sales (id, customer_id, user_id, total_amount, created_at)
-             VALUES ($1, $2, $3, $4, $5)
-             ON CONFLICT (id) DO NOTHING
-           `,
+              INSERT INTO products (id, name, barcode, price, stock_qty, is_deleted, updated_at)
+              VALUES ($1, $2, $3, $4, $5, FALSE, $6)
+              ON CONFLICT (id) DO UPDATE SET
+                name = EXCLUDED.name,
+                barcode = EXCLUDED.barcode,
+                price = EXCLUDED.price,
+                stock_qty = EXCLUDED.stock_qty,
+                updated_at = EXCLUDED.updated_at,
+                is_deleted = FALSE
+            `,
             [
               data.id,
-              data.customer_id,
-              data.user_id,
-              data.total_amount,
+              data.name,
+              data.barcode,
+              data.price,
+              data.stock_qty,
               timestamp,
             ],
           );
-        } else if (table === "sale_items") {
+        }
+      } else if (table === "customers") {
+        if (action === "DELETE") {
+          await client.query(
+            `UPDATE customers SET is_deleted = TRUE, updated_at = $1 WHERE id = $2`,
+            [timestamp, data.id],
+          );
+        } else {
           await client.query(
             `
-             INSERT INTO sale_items (id, sale_id, product_id, quantity, unit_price, subtotal)
-             VALUES ($1, $2, $3, $4, $5, $6)
-             ON CONFLICT (id) DO NOTHING
-           `,
-            [
-              data.id,
-              data.sale_id,
-              data.product_id,
-              data.quantity,
-              data.unit_price,
-              data.subtotal,
-            ],
+              INSERT INTO customers (id, name, phone, address, is_deleted, updated_at)
+              VALUES ($1, $2, $3, $4, FALSE, $5)
+              ON CONFLICT (id) DO UPDATE SET
+                name = EXCLUDED.name,
+                phone = EXCLUDED.phone,
+                address = EXCLUDED.address,
+                updated_at = EXCLUDED.updated_at,
+                is_deleted = FALSE
+            `,
+            [data.id, data.name, data.phone, data.address, timestamp],
           );
         }
-
-        // Event succeeded — release the savepoint
-        await client.query(`RELEASE SAVEPOINT ${savepointName}`);
-
-      } catch (eventError) {
-        // This single event failed — roll back ONLY this event, continue with the rest
-        console.error(`Event ${i} failed (${table}/${action}):`, eventError.message);
-        await client.query(`ROLLBACK TO SAVEPOINT ${savepointName}`);
-        // Continue processing remaining events instead of crashing the entire batch
+      } else if (table === "sales") {
+        await client.query(
+          `
+            INSERT INTO sales (id, customer_id, user_id, total_amount, created_at)
+            VALUES ($1, $2, $3, $4, $5)
+            ON CONFLICT (id) DO NOTHING
+          `,
+          [
+            data.id,
+            data.customer_id,
+            data.user_id,
+            data.total_amount,
+            timestamp,
+          ],
+        );
+      } else if (table === "sale_items") {
+        await client.query(
+          `
+            INSERT INTO sale_items (id, sale_id, product_id, quantity, unit_price, subtotal)
+            VALUES ($1, $2, $3, $4, $5, $6)
+            ON CONFLICT (id) DO NOTHING
+          `,
+          [
+            data.id,
+            data.sale_id,
+            data.product_id,
+            data.quantity,
+            data.unit_price,
+            data.subtotal,
+          ],
+        );
+      } else {
+        throw new Error(`Unsupported sync table: ${table}`);
       }
-    }
 
-    // Commit all successful events
-    await client.query("COMMIT");
-  } catch (error) {
-    if (client) await client.query("ROLLBACK");
-    console.error("DATABASE TRANSACTION FAILED!", error.message);
-    throw error;
-  } finally {
-    if (client) client.release();
+      await client.query("COMMIT");
+      if (eventId !== undefined) succeededEventIds.push(eventId);
+    } catch (eventError) {
+      try {
+        await client.query("ROLLBACK");
+      } catch (rollbackError) {
+        console.error("Rollback failed:", rollbackError.message);
+      }
+      if (eventId !== undefined) {
+        failedEvents.push({
+          id: eventId,
+          table,
+          action,
+          error: eventError.message,
+        });
+      }
+    } finally {
+      client.release();
+    }
   }
+
+  return { succeededEventIds, failedEvents };
 };
 
 module.exports = {

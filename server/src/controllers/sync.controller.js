@@ -1,5 +1,7 @@
 const syncService = require("../services/sync.service");
 
+let isPushSyncRunning = false;
+
 /**
  * Handles GET /sync/pull?since=2023-10-25T14:30:00Z
  */
@@ -24,25 +26,40 @@ const pullSync = async (req, res) => {
  * Expects { events: [ { action: 'UPDATE', table: 'products', data: {...}, timestamp: '...' } ] }
  */
 const pushSync = async (req, res) => {
+  const { events } = req.body;
+
   try {
-    const { events } = req.body;
-    
     if (!events || !Array.isArray(events)) {
       return res.status(400).json({ error: "Invalid outbox events array" });
     }
 
+    if (isPushSyncRunning) {
+      return res.status(202).json({
+        message: "Sync already running",
+        succeededEventIds: [],
+        failedEvents: [],
+      });
+    }
+
+    isPushSyncRunning = true;
+
     // Hand the outbox events to the service for processing
-    await syncService.processPushEvents(events);
+    const result = await syncService.processPushEvents(events);
     
-    return res.json({ message: "Sync Push Successful" });
+    return res.json({
+      message: "Sync Push Processed",
+      ...result,
+    });
   } catch (error) {
     console.error("CRITICAL PUSH SYNC ERROR:", error.message);
     console.error("Error Detail:", error.detail || "No detail available");
-    console.error("Failed Events Sample:", events.slice(0, 3));
+    console.error("Failed Events Sample:", events?.slice(0, 3) || []);
     return res.status(500).json({ 
       error: "Failed to process push events",
       details: error.message 
     });
+  } finally {
+    isPushSyncRunning = false;
   }
 };
 

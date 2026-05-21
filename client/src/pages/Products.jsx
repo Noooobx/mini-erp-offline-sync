@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 // EXPLANATION: We import the beautiful toast popup library
 import { toast, Toaster } from "react-hot-toast";
 import { useLiveQuery } from "dexie-react-hooks";

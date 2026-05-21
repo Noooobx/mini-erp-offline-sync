@@ -19,6 +19,10 @@ if (process.env.DATABASE_URL) {
   };
 }
 
-console.log("DB_CONFIG:", config); const pool = new Pool(config);
+const pool = new Pool(config);
+
+pool.on("error", (error) => {
+  console.error("Unexpected database connection error:", error.message);
+});
 
 module.exports = pool;

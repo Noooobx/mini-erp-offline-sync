@@ -1,4 +1,12 @@
+import { useState } from "react";
+
 const SalesTable = ({ saleItems, onQuantityChange, onRemove }) => {
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 10;
+
+  const totalPages = Math.ceil(saleItems.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const paginatedSaleItems = saleItems.slice(startIndex, startIndex + ITEMS_PER_PAGE);
   return (
     <div className="mt-6 bg-zinc-900 border border-zinc-800 rounded-3xl overflow-hidden">
       <div className="px-5 py-4 border-b border-zinc-800">
@@ -26,7 +34,7 @@ const SalesTable = ({ saleItems, onQuantityChange, onRemove }) => {
           </thead>
 
           <tbody>
-            {saleItems.map((item) => (
+            {paginatedSaleItems.map((item) => (
               <tr
                 key={item.id}
                 className="border-b border-zinc-800 hover:bg-zinc-800/20"
@@ -72,6 +80,34 @@ const SalesTable = ({ saleItems, onQuantityChange, onRemove }) => {
           </tbody>
         </table>
       </div>
+
+      {/* Pagination Controls */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between px-5 py-4 border-t border-zinc-800 bg-zinc-950/20">
+          <p className="text-zinc-500 text-sm">
+            Showing <span className="font-medium text-zinc-300">{startIndex + 1}</span> to <span className="font-medium text-zinc-300">{Math.min(startIndex + ITEMS_PER_PAGE, saleItems.length)}</span> of <span className="font-medium text-zinc-300">{saleItems.length}</span> results
+          </p>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+              className="px-3 py-1 bg-zinc-900 border border-zinc-800 hover:border-zinc-700 disabled:opacity-50 disabled:cursor-not-allowed rounded text-sm transition-colors"
+            >
+              Previous
+            </button>
+            <span className="text-zinc-400 text-sm px-2">
+              Page {currentPage} of {totalPages}
+            </span>
+            <button
+              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+              disabled={currentPage === totalPages}
+              className="px-3 py-1 bg-zinc-900 border border-zinc-800 hover:border-zinc-700 disabled:opacity-50 disabled:cursor-not-allowed rounded text-sm transition-colors"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

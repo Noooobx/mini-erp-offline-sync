@@ -1,10 +1,13 @@
 import { useState, useEffect } from "react";
 import { getSaleItemsBySaleId } from "../services/sale.service";
 import { getProducts } from "../services/product.service";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 
 const SaleDetailModal = ({ sale, onClose }) => {
   const [items, setItems] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isGenerating, setIsGenerating] = useState(false);
 
   useEffect(() => {
     const fetchLineItems = async () => {
@@ -31,6 +34,31 @@ const SaleDetailModal = ({ sale, onClose }) => {
     fetchLineItems();
   }, [sale]);
 
+  const handleDownloadPDF = async () => {
+    const input = document.getElementById("receipt-content");
+    if (!input) return;
+
+    try {
+      setIsGenerating(true);
+      const canvas = await html2canvas(input, { 
+        scale: 2, 
+        backgroundColor: "#09090b" // Match zinc-950
+      });
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF("p", "mm", "a4");
+      
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      
+      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+      pdf.save(`Invoice_${sale.id.slice(0, 8)}.pdf`);
+    } catch (error) {
+      console.error("Failed to generate PDF", error);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
       <div className="bg-zinc-900 border border-zinc-800 rounded-3xl w-full max-w-2xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
@@ -39,15 +67,24 @@ const SaleDetailModal = ({ sale, onClose }) => {
             <h2 className="text-xl font-bold">Invoice Details</h2>
             <p className="text-zinc-500 text-sm mt-1">Transaction ID: {sale.id.slice(0, 8)}...</p>
           </div>
-          <button 
-            onClick={onClose}
-            className="p-2 bg-zinc-800 hover:bg-zinc-700 rounded-lg transition"
-          >
-            ✕
-          </button>
+          <div className="flex gap-3">
+            <button
+              onClick={handleDownloadPDF}
+              disabled={isLoading || isGenerating}
+              className="px-4 py-2 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 disabled:opacity-50 rounded-lg text-sm font-medium transition"
+            >
+              {isGenerating ? "Generating..." : "Download PDF"}
+            </button>
+            <button 
+              onClick={onClose}
+              className="p-2 bg-zinc-800 hover:bg-zinc-700 rounded-lg transition"
+            >
+              ✕
+            </button>
+          </div>
         </div>
 
-        <div className="p-6 overflow-y-auto">
+        <div className="p-6 overflow-y-auto" id="receipt-content">
           {isLoading ? (
             <div className="flex justify-center p-10">
               <svg className="animate-spin h-8 w-8 text-zinc-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">

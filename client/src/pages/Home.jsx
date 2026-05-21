@@ -30,7 +30,7 @@ const Home = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white">
+    <div className="min-h-screen bg-zinc-950 text-white flex flex-col">
       {/* Navbar */}
       <header className="border-b border-zinc-800 bg-zinc-950/95 backdrop-blur flex justify-between items-center px-4 sm:px-6 py-4">
         <div className="max-w-7xl mx-auto w-full flex justify-between items-center">
@@ -47,16 +47,15 @@ const Home = () => {
       </header>
 
       {/* Main */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+      <main className="flex-1 flex flex-col justify-center max-w-7xl mx-auto px-4 sm:px-6 w-full py-8 text-center pb-20">
         {/* Quick Links */}
         <section>
-          <div className="flex items-center justify-between mb-5">
-            <h3 className="text-lg font-semibold">Quick Access</h3>
-
+          <div className="flex items-center justify-between mb-8 px-2">
+            <h3 className="text-xl font-semibold">Quick Access</h3>
             <p className="text-zinc-500 text-sm">{quickLinks.length} modules</p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 text-left">
             {quickLinks.map((item) => (
               <button
                 key={item.title}

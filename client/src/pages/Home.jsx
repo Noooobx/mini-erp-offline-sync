@@ -52,7 +52,6 @@ const Home = () => {
         <section>
           <div className="flex items-center justify-between mb-8 px-2">
             <h3 className="text-xl font-semibold">Quick Access</h3>
-            <p className="text-zinc-500 text-sm">{quickLinks.length} modules</p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 text-left">

@@ -13,13 +13,12 @@ const App = () => {
     // 1. Immediately try to sync the second the user opens the app
     syncWithServer();
 
-    // 2. The Routine: Set an automated timer to quietly sync every 15 seconds in the background
+    // 2. Setup periodic background sync (15s)
     const timer = setInterval(() => {
       syncWithServer();
     }, 15000);
 
-    // 3. The Magic Touch: The browser strictly monitors the Wi-Fi. The EXACT millisecond 
-    // the iPad leaves airplane mode and reconnects, this forces an immediate sync!
+    // 3. Trigger immediate sync upon network reconnection
     window.addEventListener("online", syncWithServer);
 
     // 4. Clean up Windows memory if the user closes the app

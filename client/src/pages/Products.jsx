@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-// EXPLANATION: We import the beautiful toast popup library
+// Notification provider
 import { toast, Toaster } from "react-hot-toast";
 import { useLiveQuery } from "dexie-react-hooks";
 import ProductModal from "../components/ProductModal";
@@ -22,7 +22,7 @@ const Products = () => {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  // EXPLANATION: We memorize the heavy array looping!
+  // Memoize derived stock counts
   const inStockCount = useMemo(() => {
     return products.filter((item) => item.stock_qty > 0).length;
   }, [products]);
@@ -84,7 +84,7 @@ const Products = () => {
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white">
-      {/* EXPLANATION: We mount the Toaster invisible component so the popups have a place to render */}
+      {/* Global notifications provider */}
       <Toaster position="top-right" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
@@ -141,7 +141,7 @@ const Products = () => {
           </div>
         </div>
 
-        {/* EXPLANATION: If isLoading is true, we show a friendly loading text! Otherwise we show the table. */}
+        {/* Data table or loading state */}
         {isLoading ? (
           <div className="flex justify-center items-center h-64">
             <p className="text-zinc-400 text-lg animate-pulse">

@@ -45,8 +45,8 @@ export const AuthProvider = ({ children }) => {
   const logout = async () => {
     setToken(null);
     setShopId(null);
-    localStorage.removeItem('lastSyncTime'); // CRITICAL: Reset sync clock!
-    // CRITICAL: Wipe the old shop's offline data entirely so the next login doesn't see it!
+    localStorage.removeItem('lastSyncTime'); // Reset sync timestamp completely
+    // Wipe local database completely to prevent cross-tenant data leakage
     await db.delete();
     
     toast.success("Successfully logged out!");

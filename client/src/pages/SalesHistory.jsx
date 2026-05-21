@@ -120,7 +120,7 @@ const SalesHistory = () => {
                   {sales.length === 0 && (
                      <tr>
                         <td colSpan="5" className="p-10 text-center text-zinc-500">
-                           No sales records found. Time to ring up a customer!
+                           No sales records found.
                         </td>
                      </tr>
                   )}

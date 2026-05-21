@@ -14,7 +14,7 @@ export const getSaleItemsBySaleId = async (saleId) => {
   return await db.sale_items.where("sale_id").equals(saleId).toArray();
 };
 
-// 2. CREATE A SALE INVOICE (With Line Items!)
+// 2. Process sale invoice and line items
 export const createSale = async (payload) => {
   const saleId = generateId();
   const timestamp = new Date().toISOString();

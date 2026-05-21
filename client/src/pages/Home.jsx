@@ -36,7 +36,6 @@ const Home = () => {
         <div className="max-w-7xl mx-auto w-full flex justify-between items-center">
           <div>
             <h1 className="text-2xl font-semibold tracking-tight">Shop Pilot</h1>
-            <p className="text-zinc-400 text-sm mt-1">Retail management system</p>
           </div>
           <button 
             onClick={logout}
@@ -49,24 +48,6 @@ const Home = () => {
 
       {/* Main */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
-        {/* Hero Section */}
-        <section className="bg-gradient-to-br from-zinc-900 to-zinc-950 border border-zinc-800 rounded-3xl p-6 sm:p-8 mb-8">
-          <div className="max-w-3xl">
-            <p className="text-zinc-400 text-sm uppercase tracking-wider mb-3">
-              Business Dashboard
-            </p>
-
-            <h2 className="text-3xl sm:text-4xl font-bold leading-tight">
-              Manage your shop operations efficiently
-            </h2>
-
-            <p className="text-zinc-400 mt-4 text-sm sm:text-base leading-relaxed">
-              Track inventory, manage customers, monitor sales, and organize
-              your business from one clean dashboard.
-            </p>
-          </div>
-        </section>
-
         {/* Quick Links */}
         <section>
           <div className="flex items-center justify-between mb-5">

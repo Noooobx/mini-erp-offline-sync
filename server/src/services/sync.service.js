@@ -46,7 +46,7 @@ const pullChanges = async (since, shopId) => {
  * PUSH COMMAND: The iPad gives the server a list of stored Outbox Events.
  * This is where we handle the crucial Conflict Resolution!
  */
-const processPushEvents = async (events, shopId) => {
+const processPushEvents = async (events, shopId, userId) => {
   const succeededEventIds = [];
   const failedEvents = [];
   const tablePriority = {
@@ -162,7 +162,7 @@ const processPushEvents = async (events, shopId) => {
           [
             data.id,
             data.customer_id,
-            data.user_id,
+            userId,
             data.total_amount,
             timestamp,
             shopId,

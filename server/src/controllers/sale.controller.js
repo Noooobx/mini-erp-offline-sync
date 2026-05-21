@@ -6,6 +6,7 @@ const saleService = require("../services/sale.service");
  */
 const createSale = async (req, res) => {
   try {
+    req.body.user_id = req.user.userId; // Forcefully ignore frontend payload
     const sale = await saleService.createSale(req.body, req.user.shopId);
     return res.status(201).json(sale);
   } catch (error) {

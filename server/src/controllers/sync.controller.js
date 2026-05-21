@@ -43,8 +43,8 @@ const pushSync = async (req, res) => {
 
     isPushSyncRunning = true;
 
-    // Hand the outbox events to the service for processing securely under this shopId
-    const result = await syncService.processPushEvents(events, req.user.shopId);
+    // Hand the outbox events to the service for processing securely under this shopId and userId
+    const result = await syncService.processPushEvents(events, req.user.shopId, req.user.userId);
     
     return res.json({
       message: "Sync Push Processed",

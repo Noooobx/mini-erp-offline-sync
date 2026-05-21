@@ -6,14 +6,14 @@ const pool = require("../db/db");
  */
 const pullChanges = async (since) => {
   const products = await pool.query(
-    "SELECT * FROM products WHERE updated_at >= $1",
+    "SELECT * FROM products WHERE updated_at > $1",
     [since],
   );
   const customers = await pool.query(
-    "SELECT * FROM customers WHERE updated_at >= $1",
+    "SELECT * FROM customers WHERE updated_at > $1",
     [since],
   );
-  const sales = await pool.query("SELECT * FROM sales WHERE created_at >= $1", [
+  const sales = await pool.query("SELECT * FROM sales WHERE created_at > $1", [
     since,
   ]);
 
@@ -24,7 +24,7 @@ const pullChanges = async (since) => {
     SELECT sale_items.* 
     FROM sale_items 
     JOIN sales ON sale_items.sale_id = sales.id 
-    WHERE sales.created_at >= $1
+    WHERE sales.created_at > $1
   `,
     [since],
   );

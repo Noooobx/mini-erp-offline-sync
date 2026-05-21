@@ -46,11 +46,14 @@ export const createSale = async (payload) => {
     // accurate even before the background courier syncs with the server!
     const product = await db.products.get(item.product_id);
     if (product) {
-      await db.products.put({
+      const updatedProduct = {
         ...product,
         stock_qty: product.stock_qty - item.quantity,
         updated_at: timestamp
-      });
+      };
+      await db.products.put(updatedProduct);
+      // Sync stock deduction to the server — without this, stock bounces back on next pull!
+      await addToOutbox('UPDATE', 'products', updatedProduct);
     }
   }
 

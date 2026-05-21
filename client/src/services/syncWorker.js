@@ -19,9 +19,9 @@ export const syncWithServer = async () => {
       const sales = await db.sales.toArray();
       
       const events = [];
-      products.forEach(p => events.push({ action: 'INSERT', table: 'products', data: p, timestamp: p.updated_at || new Date().toISOString() }));
-      customers.forEach(c => events.push({ action: 'INSERT', table: 'customers', data: c, timestamp: c.updated_at || new Date().toISOString() }));
-      sales.forEach(s => events.push({ action: 'INSERT', table: 'sales', data: s, timestamp: s.created_at || new Date().toISOString() }));
+      products.forEach(p => events.push({ action: 'CREATE', table: 'products', data: p, timestamp: p.updated_at || new Date().toISOString() }));
+      customers.forEach(c => events.push({ action: 'CREATE', table: 'customers', data: c, timestamp: c.updated_at || new Date().toISOString() }));
+      sales.forEach(s => events.push({ action: 'CREATE', table: 'sales', data: s, timestamp: s.created_at || new Date().toISOString() }));
       
       if (events.length > 0) {
         await db.outbox.bulkAdd(events);

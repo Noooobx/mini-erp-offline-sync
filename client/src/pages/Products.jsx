@@ -1,22 +1,26 @@
 import { useEffect, useState, useMemo } from "react";
 // EXPLANATION: We import the beautiful toast popup library
 import { toast, Toaster } from "react-hot-toast";
+import { useLiveQuery } from "dexie-react-hooks";
 import ProductModal from "../components/ProductModal";
 import ProductTable from "../components/ProductTable";
+import db from "../db";
 import {
-  getProducts,
   createProduct,
   updateProduct,
   deleteProduct,
 } from "../services/product.service";
 
 const Products = () => {
-  const [products, setProducts] = useState([]);
+  // useLiveQuery automatically re-renders whenever Dexie data changes (including from background sync!)
+  const products = useLiveQuery(
+    () => db.products.filter(p => !p.is_deleted).toArray(),
+    [],
+    [] // default value while loading
+  );
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
-
-  // EXPLANATION: We created a new True/False switch to track exactly when the backend is busy
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
 
   // EXPLANATION: We memorize the heavy array looping!
   const inStockCount = useMemo(() => {
@@ -31,25 +35,7 @@ const Products = () => {
     return products.reduce((total, item) => total + item.price * item.stock_qty, 0);
   }, [products]);
 
-  const fetchProducts = async () => {
-    try {
-      setIsLoading(true); // Switch it to True before we ask the backend for data
-      const data = await getProducts();
-      setProducts(data);
-    } catch (error) {
-      console.error(error);
-      // EXPLANATION: If the backend gives us a 400 or 500 error, we show an actual red popup to the user!
-      toast.error(error.response?.data?.error || "Failed to fetch products");
-    } finally {
-      // EXPLANATION: 'finally' runs regardless of whether the try succeeded or caught an error.
-      // We guarantee the loading state is turned off!
-      setIsLoading(false);
-    }
-  };
 
-  useEffect(() => {
-    fetchProducts();
-  }, []);
 
   const handleAdd = () => {
     setSelectedProduct(null);
@@ -69,11 +55,11 @@ const Products = () => {
       setIsLoading(true);
       await deleteProduct(id);
       toast.success("Product deleted successfully!");
-      fetchProducts();
     } catch (error) {
       console.error(error);
       toast.error(error.response?.data?.error || "Failed to delete product");
-      setIsLoading(false); // Only turn off here, because fetchProducts() handles it on success
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -87,11 +73,11 @@ const Products = () => {
         await createProduct(formData);
         toast.success("Product created!");
       }
-      fetchProducts();
       setIsModalOpen(false);
     } catch (error) {
       console.error(error);
       toast.error(error.response?.data?.error || "Failed to save product");
+    } finally {
       setIsLoading(false);
     }
   };

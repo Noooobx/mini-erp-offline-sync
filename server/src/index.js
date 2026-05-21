@@ -13,7 +13,7 @@ const app = express();
 
 // --- Global Middleware Setup ---
 app.use(cors()); // Allow cross-origin requests from the React frontend
-app.use(express.json()); // Automatically parse incoming JSON API bodies
+app.use(express.json({ limit: '10mb' })); // Increased from default 100kb — offline outbox can accumulate many events
 
 // --- Endpoint Routing Setup ---
 app.use("/products", productRoutes);

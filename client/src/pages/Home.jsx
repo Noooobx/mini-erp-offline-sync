@@ -55,10 +55,9 @@ const Home = () => {
       <main className="flex-1 flex flex-col justify-center max-w-7xl mx-auto px-4 sm:px-6 w-full py-8 text-center pb-20">
         
         {/* Intro */}
-        <div className="mb-10 max-w-2xl mx-auto px-2">
-          <h2 className="text-3xl font-bold tracking-tight text-white mb-3 tracking-tight">Welcome to Shop Pilot</h2>
-          <p className="text-zinc-400 text-sm sm:text-base leading-relaxed">
-            Your offline-first retail operations system. Manage inventory, ring up customers, and track analytics locally without ever worrying about a dropping internet connection.
+        <div className="mb-8 max-w-2xl mx-auto px-2">
+          <p className="text-zinc-400 text-sm sm:text-base">
+            Manage your shop operations all in one place.
           </p>
         </div>
 

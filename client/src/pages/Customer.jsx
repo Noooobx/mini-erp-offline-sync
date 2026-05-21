@@ -88,30 +88,30 @@ const Customers = () => {
 
           {/* Stats */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
-            <div className="bg-zinc-950 border border-zinc-800 rounded-2xl p-4">
+            <div className="bg-zinc-950 border border-zinc-800 rounded-2xl p-4 min-w-0">
               <p className="text-zinc-500 text-sm">Total Customers</p>
 
-              <h2 className="text-2xl font-semibold mt-2">
+              <h2 className="text-2xl font-semibold mt-2 truncate">
                 {customers.length}
               </h2>
             </div>
 
-            <div className="bg-zinc-950 border border-zinc-800 rounded-2xl p-4">
+            <div className="bg-zinc-950 border border-zinc-800 rounded-2xl p-4 min-w-0">
               <p className="text-zinc-500 text-sm">With Phone</p>
 
-              <h2 className="text-2xl font-semibold mt-2">{customers.filter(c => c.phone).length}</h2>
+              <h2 className="text-2xl font-semibold mt-2 truncate">{customers.filter(c => c.phone).length}</h2>
             </div>
 
-            <div className="bg-zinc-950 border border-zinc-800 rounded-2xl p-4">
+            <div className="bg-zinc-950 border border-zinc-800 rounded-2xl p-4 min-w-0">
               <p className="text-zinc-500 text-sm">With Address</p>
 
-              <h2 className="text-2xl font-semibold mt-2">{customers.filter(c => c.address).length}</h2>
+              <h2 className="text-2xl font-semibold mt-2 truncate">{customers.filter(c => c.address).length}</h2>
             </div>
 
-            <div className="bg-zinc-950 border border-zinc-800 rounded-2xl p-4">
+            <div className="bg-zinc-950 border border-zinc-800 rounded-2xl p-4 min-w-0">
               <p className="text-zinc-500 text-sm">Active Records</p>
 
-              <h2 className="text-2xl font-semibold mt-2">
+              <h2 className="text-2xl font-semibold mt-2 truncate">
                 {customers.length}
               </h2>
             </div>

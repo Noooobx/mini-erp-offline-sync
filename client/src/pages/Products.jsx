@@ -119,24 +119,24 @@ const Products = () => {
 
           {/* Stats */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
-            <div className="bg-zinc-950 border border-zinc-800 rounded-2xl p-4">
+            <div className="bg-zinc-950 border border-zinc-800 rounded-2xl p-4 min-w-0">
               <p className="text-zinc-500 text-sm">Total Products</p>
-              <h2 className="text-2xl font-semibold mt-2">{products.length}</h2>
+              <h2 className="text-2xl font-semibold mt-2 truncate">{products.length}</h2>
             </div>
 
-            <div className="bg-zinc-950 border border-zinc-800 rounded-2xl p-4">
+            <div className="bg-zinc-950 border border-zinc-800 rounded-2xl p-4 min-w-0">
               <p className="text-zinc-500 text-sm">In Stock</p>
-              <h2 className="text-2xl font-semibold mt-2">{inStockCount}</h2>
+              <h2 className="text-2xl font-semibold mt-2 truncate">{inStockCount}</h2>
             </div>
 
-            <div className="bg-zinc-950 border border-zinc-800 rounded-2xl p-4">
+            <div className="bg-zinc-950 border border-zinc-800 rounded-2xl p-4 min-w-0">
               <p className="text-zinc-500 text-sm">Out of Stock</p>
-              <h2 className="text-2xl font-semibold mt-2">{outOfStockCount}</h2>
+              <h2 className="text-2xl font-semibold mt-2 truncate">{outOfStockCount}</h2>
             </div>
 
-            <div className="bg-zinc-950 border border-zinc-800 rounded-2xl p-4">
+            <div className="bg-zinc-950 border border-zinc-800 rounded-2xl p-4 min-w-0">
               <p className="text-zinc-500 text-sm">Inventory Value</p>
-              <h2 className="text-2xl font-semibold mt-2">₹{inventoryValue}</h2>
+              <h2 className="text-2xl font-semibold mt-2 truncate">₹{inventoryValue}</h2>
             </div>
           </div>
         </div>

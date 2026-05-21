@@ -5,7 +5,7 @@ const customerService = require("../services/customer.service");
  */
 const getCustomers = async (req, res) => {
   try {
-    const customers = await customerService.getAllCustomers();
+    const customers = await customerService.getAllCustomers(req.user.shopId);
     return res.json(customers);
   } catch (error) {
     console.error(error);
@@ -18,7 +18,7 @@ const getCustomers = async (req, res) => {
  */
 const createCustomer = async (req, res) => {
   try {
-    const customer = await customerService.createCustomer(req.body);
+    const customer = await customerService.createCustomer(req.body, req.user.shopId);
     return res.status(201).json(customer);
   } catch (error) {
     console.error(error);
@@ -35,7 +35,7 @@ const createCustomer = async (req, res) => {
  */
 const updateCustomer = async (req, res) => {
   try {
-    const customer = await customerService.updateCustomer(req.params.id, req.body);
+    const customer = await customerService.updateCustomer(req.params.id, req.body, req.user.shopId);
     if (!customer) {
       return res.status(404).json({ error: "Customer not found" });
     }
@@ -54,7 +54,7 @@ const updateCustomer = async (req, res) => {
  */
 const deleteCustomer = async (req, res) => {
   try {
-    await customerService.deleteCustomer(req.params.id);
+    await customerService.deleteCustomer(req.params.id, req.user.shopId);
     return res.json({ message: "Customer deleted" });
   } catch (error) {
     console.error(error);

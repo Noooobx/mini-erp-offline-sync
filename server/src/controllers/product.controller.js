@@ -5,7 +5,7 @@ const productService = require("../services/product.service");
  */
 const getProducts = async (req, res) => {
   try {
-    const products = await productService.getAllProducts();
+    const products = await productService.getAllProducts(req.user.shopId);
     return res.json(products);
   } catch (error) {
     console.error(error);
@@ -19,7 +19,7 @@ const getProducts = async (req, res) => {
  */
 const createProduct = async (req, res) => {
   try {
-    const product = await productService.createProduct(req.body);
+    const product = await productService.createProduct(req.body, req.user.shopId);
     return res.status(201).json(product);
   } catch (error) {
     console.error(error);
@@ -36,7 +36,7 @@ const createProduct = async (req, res) => {
  */
 const updateProduct = async (req, res) => {
   try {
-    const product = await productService.updateProduct(req.params.id, req.body);
+    const product = await productService.updateProduct(req.params.id, req.body, req.user.shopId);
     if (!product) {
       return res.status(404).json({ error: "Product not found" });
     }
@@ -55,7 +55,7 @@ const updateProduct = async (req, res) => {
  */
 const deleteProduct = async (req, res) => {
   try {
-    await productService.deleteProduct(req.params.id);
+    await productService.deleteProduct(req.params.id, req.user.shopId);
     return res.json({ message: "Product deleted" });
   } catch (error) {
     console.error(error);

@@ -6,7 +6,7 @@ const saleService = require("../services/sale.service");
  */
 const createSale = async (req, res) => {
   try {
-    const sale = await saleService.createSale(req.body);
+    const sale = await saleService.createSale(req.body, req.user.shopId);
     return res.status(201).json(sale);
   } catch (error) {
     console.error(error);
@@ -26,7 +26,7 @@ const createSale = async (req, res) => {
  */
 const getSales = async (req, res) => {
   try {
-    const sales = await saleService.getSales();
+    const sales = await saleService.getSales(req.user.shopId);
     return res.json(sales);
   } catch (error) {
     console.error(error);
@@ -39,7 +39,7 @@ const getSales = async (req, res) => {
  */
 const getSaleById = async (req, res) => {
   try {
-    const sale = await saleService.getSaleById(req.params.id);
+    const sale = await saleService.getSaleById(req.params.id, req.user.shopId);
     if (!sale) {
       return res.status(404).json({ error: "Sale not found" });
     }

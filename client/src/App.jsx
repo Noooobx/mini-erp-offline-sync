@@ -1,9 +1,14 @@
-import { useEffect } from "react";
+import { useEffect, useContext } from "react";
 import AppRoutes from "./routes/AppRoutes";
 import { syncWithServer } from "./services/syncWorker"; // Import our new courier!
+import { AuthContext } from "./context/AuthContext";
 
 const App = () => {
+  const { isAuthenticated } = useContext(AuthContext);
+
   useEffect(() => {
+    // Only attempt to synchronize with the backend if we possess a valid Shop token!
+    if (!isAuthenticated) return;
     // 1. Immediately try to sync the second the user opens the app
     syncWithServer();
 
@@ -21,7 +26,7 @@ const App = () => {
       clearInterval(timer);
       window.removeEventListener("online", syncWithServer);
     };
-  }, []);
+  }, [isAuthenticated]);
 
   return <AppRoutes />;
 };

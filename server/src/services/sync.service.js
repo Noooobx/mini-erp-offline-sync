@@ -4,17 +4,17 @@ const pool = require("../db/db");
  * PULL COMMAND: The iPad asks the server "What changed?"
  * We grab everything where the updated_at timestamp is newer than what the iPad last saw.
  */
-const pullChanges = async (since) => {
+const pullChanges = async (since, shopId) => {
   const products = await pool.query(
-    "SELECT * FROM products WHERE updated_at > $1",
-    [since],
+    "SELECT * FROM products WHERE updated_at > $1 AND shop_id = $2",
+    [since, shopId],
   );
   const customers = await pool.query(
-    "SELECT * FROM customers WHERE updated_at > $1",
-    [since],
+    "SELECT * FROM customers WHERE updated_at > $1 AND shop_id = $2",
+    [since, shopId],
   );
-  const sales = await pool.query("SELECT * FROM sales WHERE created_at > $1", [
-    since,
+  const sales = await pool.query("SELECT * FROM sales WHERE created_at > $1 AND shop_id = $2", [
+    since, shopId
   ]);
 
   // Sale items don't have their own timestamp (they are tied to a sale),
@@ -24,9 +24,9 @@ const pullChanges = async (since) => {
     SELECT sale_items.* 
     FROM sale_items 
     JOIN sales ON sale_items.sale_id = sales.id 
-    WHERE sales.created_at > $1
+    WHERE sales.created_at > $1 AND sales.shop_id = $2
   `,
-    [since],
+    [since, shopId],
   );
 
   // Get the database's exact current time to serve as the new baseline
@@ -46,7 +46,7 @@ const pullChanges = async (since) => {
  * PUSH COMMAND: The iPad gives the server a list of stored Outbox Events.
  * This is where we handle the crucial Conflict Resolution!
  */
-const processPushEvents = async (events) => {
+const processPushEvents = async (events, shopId) => {
   const succeededEventIds = [];
   const failedEvents = [];
   const tablePriority = {
@@ -80,8 +80,8 @@ const processPushEvents = async (events) => {
       // Last-Write-Wins and Soft-Delete constraints
       if (table === "products" || table === "customers") {
         const result = await client.query(
-          `SELECT updated_at, is_deleted FROM ${table} WHERE id = $1`,
-          [data.id],
+          `SELECT updated_at, is_deleted FROM ${table} WHERE id = $1 AND shop_id = $2`,
+          [data.id, shopId],
         );
         const currentRecord = result.rows[0];
 
@@ -102,21 +102,22 @@ const processPushEvents = async (events) => {
       if (table === "products") {
         if (action === "DELETE") {
           await client.query(
-            `UPDATE products SET is_deleted = TRUE, updated_at = $1 WHERE id = $2`,
-            [timestamp, data.id],
+            `UPDATE products SET is_deleted = TRUE, updated_at = $1 WHERE id = $2 AND shop_id = $3`,
+            [timestamp, data.id, shopId],
           );
         } else {
           await client.query(
             `
-              INSERT INTO products (id, name, barcode, price, stock_qty, is_deleted, updated_at)
-              VALUES ($1, $2, $3, $4, $5, FALSE, $6)
+              INSERT INTO products (id, name, barcode, price, stock_qty, is_deleted, updated_at, shop_id)
+              VALUES ($1, $2, $3, $4, $5, FALSE, $6, $7)
               ON CONFLICT (id) DO UPDATE SET
                 name = EXCLUDED.name,
                 barcode = EXCLUDED.barcode,
                 price = EXCLUDED.price,
                 stock_qty = EXCLUDED.stock_qty,
                 updated_at = EXCLUDED.updated_at,
-                is_deleted = FALSE
+                is_deleted = FALSE,
+                shop_id = EXCLUDED.shop_id
             `,
             [
               data.id,
@@ -125,35 +126,37 @@ const processPushEvents = async (events) => {
               data.price,
               data.stock_qty,
               timestamp,
+              shopId,
             ],
           );
         }
       } else if (table === "customers") {
         if (action === "DELETE") {
           await client.query(
-            `UPDATE customers SET is_deleted = TRUE, updated_at = $1 WHERE id = $2`,
-            [timestamp, data.id],
+            `UPDATE customers SET is_deleted = TRUE, updated_at = $1 WHERE id = $2 AND shop_id = $3`,
+            [timestamp, data.id, shopId],
           );
         } else {
           await client.query(
             `
-              INSERT INTO customers (id, name, phone, address, is_deleted, updated_at)
-              VALUES ($1, $2, $3, $4, FALSE, $5)
+              INSERT INTO customers (id, name, phone, address, is_deleted, updated_at, shop_id)
+              VALUES ($1, $2, $3, $4, FALSE, $5, $6)
               ON CONFLICT (id) DO UPDATE SET
                 name = EXCLUDED.name,
                 phone = EXCLUDED.phone,
                 address = EXCLUDED.address,
                 updated_at = EXCLUDED.updated_at,
-                is_deleted = FALSE
+                is_deleted = FALSE,
+                shop_id = EXCLUDED.shop_id
             `,
-            [data.id, data.name, data.phone, data.address, timestamp],
+            [data.id, data.name, data.phone, data.address, timestamp, shopId],
           );
         }
       } else if (table === "sales") {
         await client.query(
           `
-            INSERT INTO sales (id, customer_id, user_id, total_amount, created_at)
-            VALUES ($1, $2, $3, $4, $5)
+            INSERT INTO sales (id, customer_id, user_id, total_amount, created_at, shop_id)
+            VALUES ($1, $2, $3, $4, $5, $6)
             ON CONFLICT (id) DO NOTHING
           `,
           [
@@ -162,6 +165,7 @@ const processPushEvents = async (events) => {
             data.user_id,
             data.total_amount,
             timestamp,
+            shopId,
           ],
         );
       } else if (table === "sale_items") {

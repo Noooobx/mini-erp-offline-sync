@@ -5,8 +5,23 @@ import Products from "../pages/Products";
 import Customers from "../pages/Customer";
 import Sales from "../pages/Sales";
 import Dashboard from "../pages/Dashboard";
+import Login from "../pages/Login";
+import { AuthContext } from "../context/AuthContext";
+import { useContext, useEffect } from "react";
 
 const AppRoutes = () => {
+  const { isAuthenticated } = useContext(AuthContext);
+
+  if (!isAuthenticated) {
+    return (
+      <BrowserRouter>
+        <Routes>
+          <Route path="*" element={<Login />} />
+        </Routes>
+      </BrowserRouter>
+    );
+  }
+
   return (
     <BrowserRouter>
       <Routes>

@@ -5,7 +5,7 @@ const pool = require("../db/db");
  * Queries against sales, products, and customers to generate a live snapshot.
  * @returns {Object} JSON object containing summary metrics.
  */
-const getDashboardStats = async () => {
+const getDashboardStats = async (shopId) => {
   // 1. Calculate today's total revenue pool
   // COALESCE ensures we return 0 instead of 'null' if there are zero sales today
   const todaySalesResult = await pool.query(
@@ -16,8 +16,9 @@ const getDashboardStats = async () => {
         0
       ) AS today_sales
     FROM sales
-    WHERE DATE(created_at) = CURRENT_DATE
-    `
+    WHERE DATE(created_at) = CURRENT_DATE AND shop_id = $1
+    `,
+    [shopId]
   );
 
   // 2. Tally total unique products in the system
@@ -25,8 +26,9 @@ const getDashboardStats = async () => {
     `
     SELECT COUNT(*) AS total_products
     FROM products
-    WHERE is_deleted = FALSE
-    `
+    WHERE is_deleted = FALSE AND shop_id = $1
+    `,
+    [shopId]
   );
 
   // 3. Highlight items that are running dangerously low on inventory (< 10)
@@ -34,8 +36,9 @@ const getDashboardStats = async () => {
     `
     SELECT COUNT(*) AS low_stock
     FROM products
-    WHERE stock_qty < 10 AND is_deleted = FALSE
-    `
+    WHERE stock_qty < 10 AND is_deleted = FALSE AND shop_id = $1
+    `,
+    [shopId]
   );
 
   // 4. Calculate overall historical customer reach
@@ -43,8 +46,9 @@ const getDashboardStats = async () => {
     `
     SELECT COUNT(*) AS total_customers
     FROM customers
-    WHERE is_deleted = FALSE
-    `
+    WHERE is_deleted = FALSE AND shop_id = $1
+    `,
+    [shopId]
   );
 
   // Combine and format the data as native JS Numbers to prevent PostgreSQL returning BIGINT strings

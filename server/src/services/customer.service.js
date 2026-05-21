@@ -5,14 +5,15 @@ const pool = require("../db/db");
  * Explicitly filters out soft-deleted records.
  * @returns {Array} List of customer objects.
  */
-const getAllCustomers = async () => {
+const getAllCustomers = async (shopId) => {
   const result = await pool.query(
     `
     SELECT *
     FROM customers
-    WHERE is_deleted = FALSE
+    WHERE is_deleted = FALSE AND shop_id = $1
     ORDER BY created_at DESC
-    `
+    `,
+    [shopId]
   );
 
   return result.rows;
@@ -23,15 +24,15 @@ const getAllCustomers = async () => {
  * Generates an error automatically if unique constraints (like phone) are violated.
  * @returns {Object} The newly created customer.
  */
-const createCustomer = async ({ name, phone, address }) => {
+const createCustomer = async ({ name, phone, address }, shopId) => {
   const result = await pool.query(
     `
     INSERT INTO customers
-    (name, phone, address)
-    VALUES ($1, $2, $3)
+    (name, phone, address, shop_id)
+    VALUES ($1, $2, $3, $4)
     RETURNING *
     `,
-    [name, phone, address]
+    [name, phone, address, shopId]
   );
 
   return result.rows[0];
@@ -42,7 +43,7 @@ const createCustomer = async ({ name, phone, address }) => {
  * Refreshes the updated_at timestamp natively.
  * @returns {Object} The updated customer.
  */
-const updateCustomer = async (id, { name, phone, address }) => {
+const updateCustomer = async (id, { name, phone, address }, shopId) => {
   const result = await pool.query(
     `
     UPDATE customers
@@ -51,10 +52,10 @@ const updateCustomer = async (id, { name, phone, address }) => {
       phone = $2,
       address = $3,
       updated_at = CURRENT_TIMESTAMP
-    WHERE id = $4
+    WHERE id = $4 AND shop_id = $5
     RETURNING *
     `,
-    [name, phone, address, id]
+    [name, phone, address, id, shopId]
   );
 
   return result.rows[0];
@@ -64,14 +65,14 @@ const updateCustomer = async (id, { name, phone, address }) => {
  * Soft deletes a customer by flagging is_deleted to TRUE.
  * Ensures historical sales records for this customer do not crash due to foreign key constraints.
  */
-const deleteCustomer = async (id) => {
+const deleteCustomer = async (id, shopId) => {
   await pool.query(
     `
     UPDATE customers
     SET is_deleted = TRUE
-    WHERE id = $1
+    WHERE id = $1 AND shop_id = $2
     `,
-    [id]
+    [id, shopId]
   );
 };
 

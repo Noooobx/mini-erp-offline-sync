@@ -23,9 +23,9 @@ const createSale = async ({ customer_id, user_id, items }) => {
       `
       SELECT *
       FROM products
-      WHERE id = ANY($1)
+      WHERE id = ANY($1) AND shop_id = $2
       `,
-      [productIds]
+      [productIds, shopId]
     );
 
     // Create a dictionary of products for lightning-fast memory lookup
@@ -52,11 +52,11 @@ const createSale = async ({ customer_id, user_id, items }) => {
     const saleResult = await client.query(
       `
       INSERT INTO sales
-      (customer_id, user_id, total_amount)
-      VALUES ($1, $2, $3)
+      (customer_id, user_id, total_amount, shop_id)
+      VALUES ($1, $2, $3, $4)
       RETURNING *
       `,
-      [customer_id, user_id, totalAmount]
+      [customer_id, user_id, totalAmount, shopId]
     );
 
     const sale = saleResult.rows[0];
@@ -79,9 +79,9 @@ const createSale = async ({ customer_id, user_id, items }) => {
         `
         UPDATE products
         SET stock_qty = stock_qty - $1
-        WHERE id = $2
+        WHERE id = $2 AND shop_id = $3
         `,
-        [item.quantity, item.product_id]
+        [item.quantity, item.product_id, shopId]
       );
     }
 
@@ -101,13 +101,15 @@ const createSale = async ({ customer_id, user_id, items }) => {
 /**
  * Retrieves the full list of past sales, ordered by newest first.
  */
-const getSales = async () => {
+const getSales = async (shopId) => {
   const result = await pool.query(
     `
     SELECT *
     FROM sales
+    WHERE shop_id = $1
     ORDER BY created_at DESC
-    `
+    `,
+    [shopId]
   );
 
   return result.rows;
@@ -116,14 +118,14 @@ const getSales = async () => {
 /**
  * Retrieves a single sale along with its detailed item breakdown.
  */
-const getSaleById = async (id) => {
+const getSaleById = async (id, shopId) => {
   const saleResult = await pool.query(
     `
     SELECT *
     FROM sales
-    WHERE id = $1
+    WHERE id = $1 AND shop_id = $2
     `,
-    [id]
+    [id, shopId]
   );
   
   if (saleResult.rows.length === 0) return null;

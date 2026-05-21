@@ -11,8 +11,8 @@ const pullSync = async (req, res) => {
     // If no 'since' timestamp is provided, default to pulling everything from the beginning of time
     const since = req.query.since || new Date(0).toISOString();
     
-    // Ask the service to get all data modified after that time
-    const changes = await syncService.pullChanges(since);
+    // Ask the service to get all data modified after that time for this specific shop
+    const changes = await syncService.pullChanges(since, req.user.shopId);
     
     return res.json(changes);
   } catch (error) {
@@ -43,8 +43,8 @@ const pushSync = async (req, res) => {
 
     isPushSyncRunning = true;
 
-    // Hand the outbox events to the service for processing
-    const result = await syncService.processPushEvents(events);
+    // Hand the outbox events to the service for processing securely under this shopId
+    const result = await syncService.processPushEvents(events, req.user.shopId);
     
     return res.json({
       message: "Sync Push Processed",

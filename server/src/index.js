@@ -7,6 +7,8 @@ const customerRoutes = require("./routes/customer.routes");
 const saleRoutes = require("./routes/sale.routes");
 const dashboardRoutes = require("./routes/dashboard.routes");
 const syncRoutes = require("./routes/sync.routes");
+const authRoutes = require("./routes/auth.routes");
+const requireAuth = require("./middleware/auth.middleware");
 
 // Initialize core Express server application
 const app = express();
@@ -16,12 +18,12 @@ app.use(cors()); // Allow cross-origin requests from the React frontend
 app.use(express.json({ limit: '10mb' })); // Increased from default 100kb — offline outbox can accumulate many events
 
 // --- Endpoint Routing Setup ---
-app.use("/products", productRoutes);
-app.use("/customers", customerRoutes);
-app.use("/sales", saleRoutes);
-app.use("/dashboard", dashboardRoutes);
-app.use("/sync", syncRoutes);
-
+app.use("/products", requireAuth, productRoutes);
+app.use("/customers", requireAuth, customerRoutes);
+app.use("/sales", requireAuth, saleRoutes);
+app.use("/dashboard", requireAuth, dashboardRoutes);
+app.use("/sync", requireAuth, syncRoutes);
+app.use("/auth", authRoutes);
 
 /**
  * Root health-check endpoint.

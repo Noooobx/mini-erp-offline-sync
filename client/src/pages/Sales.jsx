@@ -88,8 +88,8 @@ const Sales = () => {
 
         items: saleItems.map((item) => ({
           product_id: item.id,
-
           quantity: item.quantity,
+          price: item.price,
         })),
       };
 

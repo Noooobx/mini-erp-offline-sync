@@ -187,23 +187,23 @@ const Sales = () => {
 
             {/* Stats */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="bg-zinc-950 border border-zinc-800 rounded-2xl p-4">
+              <div className="bg-zinc-950 border border-zinc-800 rounded-2xl p-4 min-w-0">
                 <p className="text-zinc-500 text-sm">Items</p>
 
-                <h2 className="text-2xl font-semibold mt-2">
+                <h2 className="text-2xl font-semibold mt-2 truncate">
                   {saleItems.length}
                 </h2>
               </div>
 
-              <div className="bg-zinc-950 border border-zinc-800 rounded-2xl p-4">
+              <div className="bg-zinc-950 border border-zinc-800 rounded-2xl p-4 min-w-0">
                 <p className="text-zinc-500 text-sm">Quantity</p>
 
-                <h2 className="text-2xl font-semibold mt-2">
+                <h2 className="text-2xl font-semibold mt-2 truncate">
                   {totalQuantity}
                 </h2>
               </div>
 
-              <div className="bg-zinc-950 border border-zinc-800 rounded-2xl p-4">
+              <div className="bg-zinc-950 border border-zinc-800 rounded-2xl p-4 min-w-0">
                 <p className="text-zinc-500 text-sm">Customer</p>
 
                 <h2 className="text-lg font-semibold mt-2 truncate">
@@ -213,10 +213,10 @@ const Sales = () => {
                 </h2>
               </div>
 
-              <div className="bg-zinc-950 border border-zinc-800 rounded-2xl p-4">
+              <div className="bg-zinc-950 border border-zinc-800 rounded-2xl p-4 min-w-0">
                 <p className="text-zinc-500 text-sm">Total Amount</p>
 
-                <h2 className="text-2xl font-semibold mt-2">₹{totalAmount}</h2>
+                <h2 className="text-2xl font-semibold mt-2 truncate">₹{totalAmount}</h2>
               </div>
             </div>
           </div>
@@ -231,10 +231,10 @@ const Sales = () => {
 
         {/* Footer */}
         <div className="mt-6 bg-zinc-900 border border-zinc-800 rounded-3xl p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
+          <div className="min-w-0">
             <p className="text-zinc-500 text-sm">Final Amount</p>
 
-            <h2 className="text-3xl font-bold mt-1">₹{totalAmount}</h2>
+            <h2 className="text-3xl font-bold mt-1 truncate">₹{totalAmount}</h2>
           </div>
 
           <button

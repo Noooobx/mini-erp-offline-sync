@@ -118,7 +118,7 @@ const Dashboard = () => {
                 <div>
                   <p className="text-zinc-500 text-sm">{card.title}</p>
 
-                  <h2 className="text-4xl font-bold mt-4 tracking-tight">
+                  <h2 className="text-4xl font-bold mt-4 tracking-tight truncate">
                     {card.value}
                   </h2>
                 </div>
@@ -142,10 +142,10 @@ const Dashboard = () => {
                 </p>
               </div>
 
-              <div className="text-right">
+              <div className="text-right max-w-[50%]">
                 <p className="text-zinc-500 text-sm">Total Revenue</p>
 
-                <h3 className="text-2xl font-bold mt-1">₹{stats.todaySales}</h3>
+                <h3 className="text-2xl font-bold mt-1 truncate">₹{stats.todaySales}</h3>
               </div>
             </div>
 

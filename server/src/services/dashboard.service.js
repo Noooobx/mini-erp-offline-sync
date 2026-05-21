@@ -25,6 +25,7 @@ const getDashboardStats = async () => {
     `
     SELECT COUNT(*) AS total_products
     FROM products
+    WHERE is_deleted = FALSE
     `
   );
 
@@ -33,7 +34,7 @@ const getDashboardStats = async () => {
     `
     SELECT COUNT(*) AS low_stock
     FROM products
-    WHERE stock_qty < 10
+    WHERE stock_qty < 10 AND is_deleted = FALSE
     `
   );
 
@@ -42,6 +43,7 @@ const getDashboardStats = async () => {
     `
     SELECT COUNT(*) AS total_customers
     FROM customers
+    WHERE is_deleted = FALSE
     `
   );
 

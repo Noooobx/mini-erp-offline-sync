@@ -1,15 +1,15 @@
 import db, { addToOutbox, generateId } from "../db";
 import { scheduleSync } from "./syncWorker";
 
-// 1. GET PRODUCTS: Reads straight from the incredibly fast local browser database
+// 1. GET PRODUCTS
 export const getProducts = async () => {
-  // We only return items that haven't been 'soft deleted' locally
+  // Filter out locally soft-deleted products before returning to UI
   return await db.products.filter((p) => !p.is_deleted).toArray();
 };
 
 // 2. CREATE PRODUCT
 export const createProduct = async (productData) => {
-  // A - Instantly generate a UUID offline on the iPad
+  // Generate a UUID for offline creation
   const newProduct = {
     ...productData,
     id: generateId(),
@@ -19,10 +19,10 @@ export const createProduct = async (productData) => {
     updated_at: new Date().toISOString(),
   };
 
-  // B - Save to Local Database (so the React UI updates instantly)
+  // Persist to local database to update UI optimistically
   await db.products.add(newProduct);
 
-  // C - Secretly put a letter in the Outbox for the Courier to send to the server later!
+  // Queue creation event for remote synchronization
   await addToOutbox("CREATE", "products", newProduct);
   scheduleSync();
 
@@ -39,10 +39,10 @@ export const updateProduct = async (id, updateData) => {
     updated_at: new Date().toISOString(),
   };
 
-  // A - Update locally
+  // Apply updates locally
   await db.products.put(updatedProduct);
 
-  // B - Log to Outbox
+  // Queue update event for remote synchronization
   await addToOutbox("UPDATE", "products", updatedProduct);
   scheduleSync();
 
@@ -51,20 +51,20 @@ export const updateProduct = async (id, updateData) => {
 
 // 4. DELETE PRODUCT
 export const deleteProduct = async (id) => {
-  // When offline, we do not physically delete records. We do a "Soft Delete" locally.
+  // Implement local soft delete to maintain referential integrity before sync
   const product = await db.products.get(id);
   if (!product) return;
 
   const deletedProduct = {
     ...product,
-    is_deleted: true, // We hide it!
+    is_deleted: true, // Flag as soft-deleted to conditionally render out of UI
     updated_at: new Date().toISOString(),
   };
 
-  // A - Soft delete locally (React filters it out via getProducts)
+  // Persist soft delete locally
   await db.products.put(deletedProduct);
 
-  // B - Tell the Outbox to firmly DELETE it on the server when we get internet back
+  // Queue hard delete for remote synchronization
   await addToOutbox("DELETE", "products", { id });
   scheduleSync();
 };

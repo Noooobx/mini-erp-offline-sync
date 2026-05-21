@@ -1,8 +1,8 @@
 const pool = require("../db/db");
 
 /**
- * PULL COMMAND: The iPad asks the server "What changed?"
- * We grab everything where the updated_at timestamp is newer than what the iPad last saw.
+ * PULL ENDPOINT HUB
+ * Retrieves all database entries updated after the requested client timestamp.
  */
 const pullChanges = async (since, shopId) => {
   const products = await pool.query(
@@ -17,8 +17,7 @@ const pullChanges = async (since, shopId) => {
     since, shopId
   ]);
 
-  // Sale items don't have their own timestamp (they are tied to a sale),
-  // so we use a JOIN to grab items belonging to newly created sales.
+  // Resolve related sale_items for newly created sales within the sync interval.
   const saleItems = await pool.query(
     `
     SELECT sale_items.* 
@@ -29,7 +28,7 @@ const pullChanges = async (since, shopId) => {
     [since, shopId],
   );
 
-  // Get the database's exact current time to serve as the new baseline
+  // Capture exact server transaction timestamp to establish the client's next iteration cursor
   const timestampResult = await pool.query("SELECT CURRENT_TIMESTAMP as time");
   const serverTimestamp = timestampResult.rows[0].time;
 
@@ -43,8 +42,9 @@ const pullChanges = async (since, shopId) => {
 };
 
 /**
- * PUSH COMMAND: The iPad gives the server a list of stored Outbox Events.
- * This is where we handle the crucial Conflict Resolution!
+ * PUSH ENDPOINT HUB
+ * Processes queued outbox mutation events directly from the client.
+ * Implements deterministic conflict resolution enforcing Data Integrity and Multi-Tenant Isolation.
  */
 const processPushEvents = async (events, shopId, userId) => {
   const succeededEventIds = [];

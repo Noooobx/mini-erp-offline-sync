@@ -15,7 +15,7 @@ export const createSale = async (payload) => {
   const saleId = generateId();
   const timestamp = new Date().toISOString();
   
-  // A - Create the Master Sale entry representing the invoice receipt
+  // Create the master sale record
   const newSale = {
     id: saleId,
     customer_id: payload.customer_id,
@@ -24,11 +24,11 @@ export const createSale = async (payload) => {
     created_at: timestamp
   };
 
-  // B - Add the master sale to Dexie and the Outbox
+  // Persist master sale locally and queue for remote synchronization
   await db.sales.add(newSale);
   await addToOutbox('CREATE', 'sales', newSale);
 
-  // C - Loop through all the purchased cart items
+  // Process individual cart items
   for (const item of payload.items) {
     const saleItem = {
       id: generateId(),
@@ -39,12 +39,11 @@ export const createSale = async (payload) => {
       subtotal: item.quantity * item.price
     };
     
-    // Add each line item to Dexie and the Outbox individually
+    // Persist line item and queue for remote synchronization
     await db.sale_items.add(saleItem);
     await addToOutbox('CREATE', 'sale_items', saleItem);
 
-    // D - Deduct the stock_qty locally so your UI remains magically
-    // accurate even before the background courier syncs with the server!
+    // Optimistically decrement local stock quantity
     const product = await db.products.get(item.product_id);
     if (product) {
       const updatedProduct = {
@@ -53,7 +52,7 @@ export const createSale = async (payload) => {
         updated_at: timestamp
       };
       await db.products.put(updatedProduct);
-      // Sync stock deduction to the server — without this, stock bounces back on next pull!
+      // Queue stock update for remote synchronization
       await addToOutbox('UPDATE', 'products', updatedProduct);
     }
   }

@@ -1,5 +1,5 @@
-import api from "./api"; // This is the Axios setup we fixed earlier
-import db from "../db";  // This is your Dexie local database
+import api from "./api";
+import db from "../db";
 
 let isSyncing = false;
 let queuedSync = false;
@@ -11,11 +11,12 @@ export const scheduleSync = () => {
   if (debounceTimer) clearTimeout(debounceTimer);
   debounceTimer = setTimeout(() => {
     syncWithServer();
-  }, 1000); // Wait 1 second before retrying to prevent aggressive infinite loops
+  }, 1000); // Debounce to prevent aggressive sync loops
 };
 
 export const syncWithServer = async () => {
-  // SAFETY CHECK: If the browser's wifi is off, don't even try to sync. Just exit immediately.
+  // Check network connectivity before initiating sync
+
   if (!navigator.onLine) return;
   if (isSyncing) {
     queuedSync = true;
@@ -28,7 +29,7 @@ export const syncWithServer = async () => {
     let pushFailed = false;
 
     // ==========================================
-    // 1. PUSH: EMTPYING THE OUTBOX
+    // 1. Push Synchronization Phase
     // ==========================================
     const outboxEvents = await db.outbox.orderBy('id').toArray();
     
@@ -52,20 +53,20 @@ export const syncWithServer = async () => {
     }
 
     // ==========================================
-    // 2. PULL: GRABBING NEW DATA
+    // 2. Pull Synchronization Phase
     // ==========================================
     const lastSyncTime = localStorage.getItem('lastSyncTime') || new Date(0).toISOString();
     
     const response = await api.get(`/sync/pull?since=${lastSyncTime}`);
     const { serverTimestamp, products, customers, sales, saleItems } = response.data;
     
-    // bulkPut will effortlessly dump all the new rows straight into your Dexie local database
+    // Hydrate local IndexedDB stores with server payloads
     if (products?.length > 0) await db.products.bulkPut(products);
     if (customers?.length > 0) await db.customers.bulkPut(customers);
     if (sales?.length > 0) await db.sales.bulkPut(sales);
     if (saleItems?.length > 0) await db.sale_items.bulkPut(saleItems);
     
-    // We must use the SERVER'S CLOCK as the single source of truth
+    // Update successful sync timestamp to cursor threshold
     if (serverTimestamp) {
       localStorage.setItem('lastSyncTime', serverTimestamp);
     }

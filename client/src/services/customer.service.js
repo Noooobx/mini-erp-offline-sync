@@ -3,13 +3,13 @@ import { scheduleSync } from "./syncWorker";
 
 // 1. GET CUSTOMERS
 export const getCustomers = async () => {
-  // We only return customers that haven't been 'soft deleted' locally
+  // Filter out locally soft-deleted records before returning to UI
   return await db.customers.filter(c => !c.is_deleted).toArray();
 };
 
 // 2. CREATE CUSTOMER
 export const createCustomer = async (customerData) => {
-  // A - Instantly generate a UUID offline
+  // Generate a UUID for offline creation
   const newCustomer = {
     ...customerData,
     id: generateId(),
@@ -17,10 +17,10 @@ export const createCustomer = async (customerData) => {
     updated_at: new Date().toISOString()
   };
 
-  // B - Save to Local Database (so the React UI updates instantly)
+  // Persist to local database to update UI optimistically
   await db.customers.add(newCustomer);
 
-  // C - Put the 'CREATE' letter in the Outbox
+  // Queue creation event for remote synchronization
   await addToOutbox('CREATE', 'customers', newCustomer);
   scheduleSync();
 
@@ -35,10 +35,10 @@ export const updateCustomer = async (id, updateData) => {
     updated_at: new Date().toISOString()
   };
 
-  // A - Update locally 
+  // Apply updates locally
   await db.customers.put(updatedCustomer);
 
-  // B - Log to Outbox for when internet reconnects
+  // Queue update event for remote synchronization
   await addToOutbox('UPDATE', 'customers', updatedCustomer);
   scheduleSync();
 
@@ -47,20 +47,20 @@ export const updateCustomer = async (id, updateData) => {
 
 // 4. DELETE CUSTOMER
 export const deleteCustomer = async (id) => {
-  // When offline, we do not physically delete records. We do a "Soft Delete" locally.
+  // Implement local soft delete to maintain referential integrity before sync
   const customer = await db.customers.get(id);
   if (!customer) return;
   
   const deletedCustomer = {
     ...customer,
-    is_deleted: true, // We hide it!
+    is_deleted: true, // Flag as soft-deleted to conditionally render out of UI
     updated_at: new Date().toISOString()
   };
   
-  // A - Soft delete locally (React filters it out)
+  // Persist soft delete locally
   await db.customers.put(deletedCustomer);
   
-  // B - Tell the Outbox to send the hard server DELETE later
+  // Queue hard delete for remote synchronization
   await addToOutbox('DELETE', 'customers', { id });
   scheduleSync();
 };

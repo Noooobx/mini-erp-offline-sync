@@ -1,9 +1,0 @@
-◇ injected env (2) from .env // tip: ⌘ custom filepath { path: '/custom/path/.env' }
-◇ injected env (0) from .env // tip: ⌘ suppress logs { quiet: true }
-Push result: {
-  "succeededEventIds": [
-    "test-event-1",
-    "test-event-2"
-  ],
-  "failedEvents": []
-}

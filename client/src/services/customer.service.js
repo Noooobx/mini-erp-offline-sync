@@ -1,4 +1,5 @@
 import db, { addToOutbox, generateId } from "../db";
+import { scheduleSync } from "./syncWorker";
 
 // 1. GET CUSTOMERS
 export const getCustomers = async () => {
@@ -21,6 +22,7 @@ export const createCustomer = async (customerData) => {
 
   // C - Put the 'CREATE' letter in the Outbox
   await addToOutbox('CREATE', 'customers', newCustomer);
+  scheduleSync();
 
   return newCustomer;
 };
@@ -38,6 +40,7 @@ export const updateCustomer = async (id, updateData) => {
 
   // B - Log to Outbox for when internet reconnects
   await addToOutbox('UPDATE', 'customers', updatedCustomer);
+  scheduleSync();
 
   return updatedCustomer;
 };
@@ -59,4 +62,5 @@ export const deleteCustomer = async (id) => {
   
   // B - Tell the Outbox to send the hard server DELETE later
   await addToOutbox('DELETE', 'customers', { id });
+  scheduleSync();
 };

@@ -1,4 +1,5 @@
 import db, { addToOutbox, generateId } from "../db";
+import { scheduleSync } from "./syncWorker";
 
 // 1. GET SALES
 export const getSales = async () => {
@@ -57,5 +58,6 @@ export const createSale = async (payload) => {
     }
   }
 
+  scheduleSync();
   return newSale;
 };

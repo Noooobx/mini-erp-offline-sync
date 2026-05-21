@@ -18,9 +18,14 @@ const Home = () => {
       path: "/customers",
     },
     {
-      title: "Sales",
-      description: "Create invoices and track sales",
+      title: "New Sale (POS)",
+      description: "Create invoices and ring up customers",
       path: "/sales",
+    },
+    {
+      title: "Sales History",
+      description: "View past invoices and receipts",
+      path: "/sales-history",
     },
     {
       title: "Dashboard",
@@ -54,7 +59,7 @@ const Home = () => {
             <h3 className="text-xl font-semibold">Quick Access</h3>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 text-left">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 text-left">
             {quickLinks.map((item) => (
               <button
                 key={item.title}

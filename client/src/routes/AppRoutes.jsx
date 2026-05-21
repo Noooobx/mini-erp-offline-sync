@@ -4,6 +4,7 @@ import Home from "../pages/Home";
 import Products from "../pages/Products";
 import Customers from "../pages/Customer";
 import Sales from "../pages/Sales";
+import SalesHistory from "../pages/SalesHistory";
 import Dashboard from "../pages/Dashboard";
 import Login from "../pages/Login";
 import { AuthContext } from "../context/AuthContext";
@@ -30,6 +31,7 @@ const AppRoutes = () => {
         <Route path="/products" element={<Products />} />
         <Route path="/customers" element={<Customers />} />
         <Route path="/sales" element={<Sales />} />
+        <Route path="/sales-history" element={<SalesHistory />} />
         <Route path="/dashboard" element={<Dashboard />} />
       </Routes>
     </BrowserRouter>

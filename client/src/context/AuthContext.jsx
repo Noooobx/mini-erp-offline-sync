@@ -49,7 +49,7 @@ export const AuthProvider = ({ children }) => {
     // CRITICAL: Wipe the old shop's offline data entirely so the next login doesn't see it!
     await db.delete();
     
-    toast.success("Successfully logged out!", { icon: '👋' });
+    toast.success("Successfully logged out!");
 
     setTimeout(() => {
       window.location.reload(); // Reload to recreate the Dexie db instance cleanly after showing toast

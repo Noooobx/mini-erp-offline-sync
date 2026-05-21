@@ -2,6 +2,7 @@ import { useEffect, useContext } from "react";
 import AppRoutes from "./routes/AppRoutes";
 import { AuthContext } from "./context/AuthContext";
 import { Toaster } from "react-hot-toast";
+import { syncWithServer } from "./services/syncWorker";
 
 const App = () => {
   const { isAuthenticated } = useContext(AuthContext);

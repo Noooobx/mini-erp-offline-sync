@@ -62,11 +62,11 @@ const Home = () => {
         
         {/* Intro Hero Section */}
         <div className="mb-12 max-w-3xl mx-auto px-2">
-          <h2 className="text-4xl sm:text-5xl font-extrabold tracking-tight mb-4 text-transparent bg-clip-text bg-gradient-to-r from-white to-zinc-400">
+          <h2 className="text-3xl sm:text-5xl font-extrabold tracking-tight mb-4 text-transparent bg-clip-text bg-gradient-to-r from-white to-zinc-400">
             Unified Retail OS
           </h2>
           <p className="text-zinc-400 text-base sm:text-lg">
-            Manage your shop operations, track inventory real-time, and run point-of-sale transactions all in one place. Engineered for speed and efficiency.
+            Manage your shop operations, track inventory real-time, and run point-of-sale transactions all in one place.
           </p>
         </div>
 

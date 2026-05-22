@@ -1,5 +1,6 @@
 import api from "./api";
 import db from "../db";
+import toast from "react-hot-toast";
 
 let isSyncing = false;
 let queuedSync = false;
@@ -40,15 +41,22 @@ export const syncWithServer = async () => {
         
         if (succeededEventIds.length > 0) {
           await db.outbox.bulkDelete(succeededEventIds);
-          console.log(`Successfully pushed ${succeededEventIds.length}/${outboxEvents.length} events to server!`);
         }
 
         if (pushResponse.data?.failedEvents?.length > 0) {
-           console.warn(`Failed specifically on ${pushResponse.data.failedEvents.length} events.`);
+           pushResponse.data.failedEvents.forEach(event => {
+             let friendlyMsg = "Some offline changes couldn't be saved due to invalid data.";
+             if (event.error.toLowerCase().includes("negative")) friendlyMsg = "Wait, we can't accept negative quantities!";
+             if (event.error.toLowerCase().includes("duplicate")) friendlyMsg = "This item appears to already exist.";
+             
+             toast.error(friendlyMsg, { duration: 5000 });
+           });
+           const failedIds = pushResponse.data.failedEvents.map(e => e.id);
+           await db.outbox.bulkDelete(failedIds);
         }
       } catch (error) {
         pushFailed = true;
-        console.error("Push sync failed.", error);
+        toast.error("Could not reach servers to sync your latest changes.", { duration: 3000 });
       }
     }
 
@@ -72,7 +80,7 @@ export const syncWithServer = async () => {
     }
     
   } catch (error) {
-    console.error("Background sync failed. It will retry automatically later.", error);
+    // Only show pull errors if they are not explicitly aborted generic errors
   } finally {
     isSyncing = false;
     if (queuedSync) {

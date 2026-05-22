@@ -106,6 +106,9 @@ const processPushEvents = async (events, shopId, userId) => {
             [timestamp, data.id, shopId],
           );
         } else {
+          if (Number(data.price) < 0) throw new Error("Price cannot be negative");
+          if (Number(data.stock_qty) < 0) throw new Error("Stock quantity cannot be negative");
+
           await client.query(
             `
               INSERT INTO products (id, name, barcode, price, stock_qty, is_deleted, updated_at, shop_id)
@@ -153,6 +156,8 @@ const processPushEvents = async (events, shopId, userId) => {
           );
         }
       } else if (table === "sales") {
+        if (Number(data.total_amount) < 0) throw new Error("Total amount cannot be negative");
+
         await client.query(
           `
             INSERT INTO sales (id, customer_id, user_id, total_amount, created_at, shop_id)
@@ -169,6 +174,10 @@ const processPushEvents = async (events, shopId, userId) => {
           ],
         );
       } else if (table === "sale_items") {
+        if (Number(data.quantity) <= 0) throw new Error("Quantity must be greater than zero");
+        if (Number(data.unit_price) < 0) throw new Error("Unit price cannot be negative");
+        if (Number(data.subtotal) < 0) throw new Error("Subtotal cannot be negative");
+
         await client.query(
           `
             INSERT INTO sale_items (id, sale_id, product_id, quantity, unit_price, subtotal)

@@ -44,6 +44,11 @@ const Sales = () => {
 
     if (!product) return;
 
+    if (product.stock_qty <= 0) {
+      alert("This product is out of stock.");
+      return;
+    }
+
     const exists = saleItems.find((item) => item.id === product.id);
 
     if (exists) return;
@@ -58,6 +63,12 @@ const Sales = () => {
   };
 
   const handleQuantityChange = (id, quantity) => {
+    const product = products.find((p) => p.id === id);
+    if (product && Number(quantity) > product.stock_qty) {
+      alert(`Cannot add more than ${product.stock_qty} items.`);
+      return;
+    }
+
     setSaleItems(
       saleItems.map((item) =>
         item.id === id
@@ -106,6 +117,7 @@ const Sales = () => {
       setSaleItems([]);
     } catch (error) {
       console.error(error);
+      alert(error.message || "Failed to create sale");
     }
   };
 
@@ -171,8 +183,12 @@ const Sales = () => {
                 <option value="">Select Product</option>
 
                 {products.map((product) => (
-                  <option key={product.id} value={product.id}>
-                    {product.name}
+                  <option 
+                    key={product.id} 
+                    value={product.id}
+                    disabled={product.stock_qty <= 0}
+                  >
+                    {product.name} {product.stock_qty <= 0 ? "(Out of stock)" : ""}
                   </option>
                 ))}
               </select>

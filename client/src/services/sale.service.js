@@ -19,6 +19,17 @@ export const createSale = async (payload) => {
   const saleId = generateId();
   const timestamp = new Date().toISOString();
   
+  // Pre-validate all items' stock quantities before creating the sale
+  for (const item of payload.items) {
+    const product = await db.products.get(item.product_id);
+    if (!product) {
+      throw new Error(`Product not found`);
+    }
+    if (product.stock_qty < item.quantity) {
+      throw new Error(`"${product.name}" is out of stock (available: ${product.stock_qty})`);
+    }
+  }
+
   // Create the master sale record
   const newSale = {
     id: saleId,

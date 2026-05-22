@@ -24,6 +24,9 @@ const getAllProducts = async (shopId) => {
  * @returns {Object} The recently created product record.
  */
 const createProduct = async ({ name, barcode, price, stock_qty }, shopId) => {
+  if (Number(price) < 0) throw new Error("Price cannot be negative");
+  if (Number(stock_qty) < 0) throw new Error("Stock quantity cannot be negative");
+
   const result = await pool.query(
     `
     INSERT INTO products
@@ -42,6 +45,9 @@ const createProduct = async ({ name, barcode, price, stock_qty }, shopId) => {
  * @returns {Object} The newly updated product.
  */
 const updateProduct = async (id, { name, barcode, price, stock_qty }, shopId) => {
+  if (Number(price) < 0) throw new Error("Price cannot be negative");
+  if (Number(stock_qty) < 0) throw new Error("Stock quantity cannot be negative");
+
   const result = await pool.query(
     `
     UPDATE products

@@ -49,6 +49,7 @@ const SalesTable = ({ saleItems, onQuantityChange, onRemove }) => {
                   <input
                     type="number"
                     min="1"
+                    max={item.stock_qty}
                     value={item.quantity}
                     onChange={(e) => onQuantityChange(item.id, e.target.value)}
                     className="w-24 bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 outline-none focus:border-zinc-700"

@@ -69,7 +69,74 @@ When the Outbox array hits the Postgres backend, the server arbitrates collision
 
 ## Constraints, Security & Validations
 
+- **Strict Input Validation:** To prevent database corruption and logic errors, the `product.service.js` and `sync.service.js` core endpoints structurally enforce valid numerical data. Any attempt to sync a negative price, negative total_amount, or zero-qty stock results in an intercepted Node.js Error which securely rolls back that specific malicious queue event without breaking the larger synchronization loop.
 - **Data Sweeping on Logout:** When a user explicitly logs out, the frontend triggers `db.delete()` to entirely wipe the IndexedDB. This prevents cross-tenant data leakage if another manager logs into the same physical device.
 - **UUIDs Over Auto-Increment:** Swapped basic integer IDs to `uuid_generate_v4()`. Offline devices generating an ID `1` would critically collide during sync. UUIDs mathematically guarantee zero primary key conflict on merge.
 - **Performance:** Rendering massive tables is handled through strict 10-item-per-page UI pagination arrays. Dashboard calculations (`inStockCount`, `inventoryValue`, etc.) are heavily wrapped in React `useMemo` hooks to prevent React from hanging during array loops.
 - **Client-Side PDF Generation (Bonus):** Rather than straining the backend server with PDF buffer processing, the Sales History Ledger utilizes `html2canvas` and `jsPDF` to parse the localized DOM elements and snapshot physical receipt boundaries directly on the user's processor.
+
+---
+
+## Database Schema
+
+The core relational architecture securely separates multi-tenant shops and maintains referential integrity even upon deletion using `is_deleted` flags.
+
+```mermaid
+erDiagram
+    users ||--o{ shops : owns
+    shops ||--o{ products : contains
+    shops ||--o{ customers : contains
+    shops ||--o{ sales : generates
+
+    users {
+        uuid id PK
+        string username
+        string password
+    }
+
+    shops {
+        uuid id PK
+        string name
+        uuid owner_id FK
+    }
+
+    products {
+        uuid id PK
+        string name
+        string barcode
+        numeric price
+        integer stock_qty
+        boolean is_deleted
+        uuid shop_id FK
+    }
+
+    customers {
+        uuid id PK
+        string name
+        string phone
+        string address
+        boolean is_deleted
+        uuid shop_id FK
+    }
+
+    sales {
+        uuid id PK
+        uuid customer_id FK "nullable"
+        uuid user_id FK
+        uuid shop_id FK
+        numeric total_amount
+        timestamp created_at
+    }
+
+    sale_items {
+        uuid id PK
+        uuid sale_id FK
+        uuid product_id FK
+        integer quantity
+        numeric unit_price
+        numeric subtotal
+    }
+
+    sales ||--|{ sale_items : contains
+    products ||--o{ sale_items : referenced_by
+```

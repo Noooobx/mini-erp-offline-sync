@@ -84,6 +84,7 @@ const ProductModal = ({ isOpen, onClose, onSubmit, selectedProduct }) => {
             <input
               type="number"
               name="price"
+              min="0"
               placeholder="Price"
               value={formData.price}
               onChange={handleChange}
@@ -94,6 +95,7 @@ const ProductModal = ({ isOpen, onClose, onSubmit, selectedProduct }) => {
             <input
               type="number"
               name="stock_qty"
+              min="0"
               placeholder="Stock Quantity"
               value={formData.stock_qty}
               onChange={handleChange}
